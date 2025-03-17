@@ -1,7 +1,7 @@
 
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Trash2, Plus, Minus, CreditCard } from "lucide-react";
+import { Trash2, Plus, Minus, CreditCard, Loader2 } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,11 +22,8 @@ const Cart: React.FC = () => {
   const navigate = useNavigate();
   
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
-  const [cardNumber, setCardNumber] = useState("");
-  const [cardExpiryMonth, setCardExpiryMonth] = useState("");
-  const [cardExpiryYear, setCardExpiryYear] = useState("");
-  const [cardCvv, setCardCvv] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | null>(null);
 
   const handleQuantityChange = (id: string, change: number) => {
     const item = items.find(item => item.id === id);
@@ -48,77 +45,28 @@ const Cart: React.FC = () => {
     setIsPaymentDialogOpen(true);
   };
 
-  const formatCardNumber = (value: string) => {
-    // Remove all non-digit characters
-    const digits = value.replace(/\D/g, "");
-    
-    // Limit to 16 digits
-    const limited = digits.slice(0, 16);
-    
-    // Add spaces every 4 digits
-    const formatted = limited.replace(/(\d{4})(?=\d)/g, "$1 ");
-    
-    return formatted;
-  };
-
-  const validatePaymentDetails = () => {
-    // Clean card number
-    const cleanCardNumber = cardNumber.replace(/\s+/g, "");
-    
-    // Validate card number starts with 4, 5, or 6
-    if (!/^[456]/.test(cleanCardNumber)) {
-      toast.error("Card number must start with 4, 5, or 6");
-      return false;
-    }
-    
-    // Validate card number length
-    if (cleanCardNumber.length !== 16) {
-      toast.error("Card number must be 16 digits");
-      return false;
-    }
-    
-    // Validate expiry month
-    if (!cardExpiryMonth || parseInt(cardExpiryMonth) < 1 || parseInt(cardExpiryMonth) > 12) {
-      toast.error("Please enter a valid expiry month (1-12)");
-      return false;
-    }
-    
-    // Validate expiry year
-    const currentYear = new Date().getFullYear() % 100; // Get last 2 digits of year
-    if (!cardExpiryYear || parseInt(cardExpiryYear) < currentYear) {
-      toast.error("Card is expired");
-      return false;
-    }
-    
-    // Validate CVV
-    if (!cardCvv || cardCvv.length < 3 || cardCvv.length > 4) {
-      toast.error("Please enter a valid CVV");
-      return false;
-    }
-    
-    return true;
+  const handleSelectPaymentMethod = (method: string) => {
+    setSelectedPaymentMethod(method);
   };
 
   const handleProcessPayment = async () => {
     try {
-      if (!validatePaymentDetails()) {
+      if (!selectedPaymentMethod) {
+        toast.error("Please select a payment method");
         return;
       }
 
       setIsProcessing(true);
       
-      // Simulate payment processing delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Simulate payment processing delay (5 seconds)
+      await new Promise(resolve => setTimeout(resolve, 5000));
       
       // Process the sale
-      const saleId = await saveSale("Credit Card", cardNumber.replace(/\s+/g, ""));
+      const saleId = await saveSale(selectedPaymentMethod);
       
       // Close dialog and reset form
       setIsPaymentDialogOpen(false);
-      setCardNumber("");
-      setCardExpiryMonth("");
-      setCardExpiryYear("");
-      setCardCvv("");
+      setSelectedPaymentMethod(null);
       
       // Navigate to the success page
       navigate(`/payment-success/${saleId}`);
@@ -129,17 +77,26 @@ const Cart: React.FC = () => {
     }
   };
 
+  const paymentMethods = [
+    { id: "visa", name: "Visa", icon: "/payment-icons/visa.png" },
+    { id: "mastercard", name: "Mastercard", icon: "/payment-icons/mastercard.png" },
+    { id: "amex", name: "American Express", icon: "/payment-icons/amex.png" },
+    { id: "applepay", name: "Apple Pay", icon: "/payment-icons/applepay.png" },
+    { id: "googlepay", name: "Google Pay", icon: "/payment-icons/googlepay.png" },
+  ];
+
   return (
     <>
-      <Card className="h-full flex flex-col">
-        <CardHeader>
-          <CardTitle className="flex justify-between items-center">
+      <Card className="h-full flex flex-col bg-gradient-to-br from-white to-blue-50">
+        <CardHeader className="bg-gradient-to-r from-blue-100 to-purple-100 rounded-t-lg">
+          <CardTitle className="flex justify-between items-center text-blue-800">
             <span>Current Sale</span>
             <Button 
               variant="outline" 
               size="sm" 
               onClick={clearCart}
               disabled={items.length === 0 && !customAmount}
+              className="border-blue-300 text-blue-700 hover:bg-blue-200"
             >
               Clear
             </Button>
@@ -153,10 +110,10 @@ const Cart: React.FC = () => {
           ) : (
             <div className="space-y-4">
               {items.map((item) => (
-                <div key={item.id} className="flex justify-between items-center p-2 border-b">
+                <div key={item.id} className="flex justify-between items-center p-2 border-b border-blue-100">
                   <div className="flex-1">
-                    <div className="font-medium">{item.name}</div>
-                    <div className="text-sm text-gray-500">
+                    <div className="font-medium text-gray-800">{item.name}</div>
+                    <div className="text-sm text-blue-600">
                       {formatCurrency(item.price)} each
                     </div>
                   </div>
@@ -164,7 +121,7 @@ const Cart: React.FC = () => {
                     <Button
                       variant="outline"
                       size="icon"
-                      className="h-8 w-8"
+                      className="h-8 w-8 border-blue-300 text-blue-700"
                       onClick={() => handleQuantityChange(item.id, -1)}
                     >
                       <Minus className="h-4 w-4" />
@@ -173,7 +130,7 @@ const Cart: React.FC = () => {
                     <Button
                       variant="outline"
                       size="icon"
-                      className="h-8 w-8"
+                      className="h-8 w-8 border-blue-300 text-blue-700"
                       onClick={() => handleQuantityChange(item.id, 1)}
                     >
                       <Plus className="h-4 w-4" />
@@ -181,7 +138,7 @@ const Cart: React.FC = () => {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 text-destructive"
+                      className="h-8 w-8 text-red-500 hover:bg-red-50"
                       onClick={() => handleRemoveItem(item.id)}
                     >
                       <Trash2 className="h-4 w-4" />
@@ -191,21 +148,21 @@ const Cart: React.FC = () => {
               ))}
               
               {customAmount && parseFloat(customAmount) > 0 && (
-                <div className="flex justify-between items-center p-2 border-b">
-                  <div className="font-medium">Custom Amount</div>
-                  <div>{formatCurrency(parseFloat(customAmount))}</div>
+                <div className="flex justify-between items-center p-2 border-b border-blue-100">
+                  <div className="font-medium text-gray-800">Custom Amount</div>
+                  <div className="text-blue-600">{formatCurrency(parseFloat(customAmount))}</div>
                 </div>
               )}
             </div>
           )}
         </CardContent>
-        <CardFooter className="flex-col border-t pt-4">
+        <CardFooter className="flex-col border-t pt-4 bg-gradient-to-b from-blue-50 to-blue-100 rounded-b-lg">
           <div className="w-full flex justify-between text-lg font-bold mb-4">
-            <span>Total</span>
-            <span>{formatCurrency(totalAmount)}</span>
+            <span className="text-gray-800">Total</span>
+            <span className="text-blue-700">{formatCurrency(totalAmount)}</span>
           </div>
           <Button 
-            className="w-full" 
+            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white" 
             size="lg"
             onClick={handleCheckout}
             disabled={totalAmount <= 0}
@@ -217,71 +174,67 @@ const Cart: React.FC = () => {
       </Card>
 
       <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md bg-gradient-to-br from-white to-blue-50">
           <DialogHeader>
-            <DialogTitle>Payment Information</DialogTitle>
-            <DialogDescription>
-              Enter your credit card details to complete the purchase.
+            <DialogTitle className="text-center text-blue-800 text-xl">Payment Method</DialogTitle>
+            <DialogDescription className="text-center">
+              Select a payment method to complete your purchase.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Card Number</label>
-              <Input
-                placeholder="4111 1111 1111 1111"
-                value={cardNumber}
-                onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
-              />
+          
+          <div className="py-4">
+            <div className="grid grid-cols-3 gap-3">
+              {paymentMethods.map((method) => (
+                <div 
+                  key={method.id}
+                  className={`p-3 border rounded-lg cursor-pointer transition-all ${
+                    selectedPaymentMethod === method.id 
+                      ? 'border-blue-500 bg-blue-50 shadow-md' 
+                      : 'border-gray-200 hover:border-blue-300'
+                  }`}
+                  onClick={() => handleSelectPaymentMethod(method.id)}
+                >
+                  <div className="flex flex-col items-center">
+                    <div className="h-12 w-16 flex items-center justify-center mb-2">
+                      <img 
+                        src={method.icon} 
+                        alt={method.name} 
+                        className="max-h-full max-w-full object-contain"
+                      />
+                    </div>
+                    <span className="text-xs text-center">{method.name}</span>
+                  </div>
+                </div>
+              ))}
             </div>
-            <div className="grid grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Exp. Month</label>
-                <Input
-                  placeholder="MM"
-                  maxLength={2}
-                  value={cardExpiryMonth}
-                  onChange={(e) => {
-                    const value = e.target.value.replace(/\D/g, "").slice(0, 2);
-                    setCardExpiryMonth(value);
-                  }}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Exp. Year</label>
-                <Input
-                  placeholder="YY"
-                  maxLength={2}
-                  value={cardExpiryYear}
-                  onChange={(e) => {
-                    const value = e.target.value.replace(/\D/g, "").slice(0, 2);
-                    setCardExpiryYear(value);
-                  }}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">CVV</label>
-                <Input
-                  placeholder="123"
-                  maxLength={4}
-                  value={cardCvv}
-                  onChange={(e) => {
-                    const value = e.target.value.replace(/\D/g, "").slice(0, 4);
-                    setCardCvv(value);
-                  }}
-                />
-              </div>
+            
+            <div className="mt-6 text-center text-sm text-gray-500">
+              Tap your card or phone when prompted by the terminal
             </div>
           </div>
+          
           <DialogFooter>
             <Button
               variant="outline"
               onClick={() => setIsPaymentDialogOpen(false)}
               disabled={isProcessing}
+              className="border-blue-300 text-blue-700"
             >
               Cancel
             </Button>
-            <Button onClick={handleProcessPayment} disabled={isProcessing}>
-              {isProcessing ? "Processing..." : `Pay ${formatCurrency(totalAmount)}`}
+            <Button 
+              onClick={handleProcessPayment} 
+              disabled={isProcessing || !selectedPaymentMethod}
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+            >
+              {isProcessing ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                `Pay ${formatCurrency(totalAmount)}`
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>

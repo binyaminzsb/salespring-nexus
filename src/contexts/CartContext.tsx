@@ -19,7 +19,7 @@ interface CartContextType {
   updateItemQuantity: (id: string, quantity: number) => void;
   removeItem: (id: string) => void;
   clearCart: () => void;
-  saveSale: (paymentMethod: string, cardNumber?: string) => Promise<string>;
+  saveSale: (paymentMethod: string) => Promise<string>;
 }
 
 // Create the context
@@ -83,7 +83,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   // Save sale and generate receipt
-  const saveSale = async (paymentMethod: string, cardNumber?: string) => {
+  const saveSale = async (paymentMethod: string) => {
     try {
       // Create sale object
       const sale = {
@@ -92,7 +92,6 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
         customAmount: customAmount ? parseFloat(customAmount) : 0,
         totalAmount,
         paymentMethod,
-        cardNumber: cardNumber ? `xxxx-xxxx-xxxx-${cardNumber.slice(-4)}` : undefined,
         date: new Date().toISOString(),
       };
       

@@ -108,10 +108,12 @@ export const generateReceiptText = (sale: any) => {
   const formattedTime = date.toLocaleTimeString("en-US");
   
   let receiptText = `
-BLANK POS SYSTEM
+=================================
+          BLANK POS SYSTEM
+=================================
 Receipt #${sale.id.substring(0, 8)}
 ${formattedDate} at ${formattedTime}
--------------------------------
+---------------------------------
 `;
 
   sale.items.forEach((item: any) => {
@@ -130,7 +132,7 @@ Custom Amount: ${formatCurrency(sale.customAmount)}
   }
 
   receiptText += `
--------------------------------
+---------------------------------
 TOTAL: ${formatCurrency(sale.totalAmount)}
 Payment Method: ${sale.paymentMethod}
 `;
@@ -141,7 +143,9 @@ Payment Method: ${sale.paymentMethod}
   }
 
   receiptText += `
-Thank you for your purchase!
+=================================
+    Thank you for your purchase!
+=================================
 `;
 
   return receiptText;
