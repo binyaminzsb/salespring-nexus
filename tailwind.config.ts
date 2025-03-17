@@ -64,11 +64,19 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
 				pos: {
-					'blue': '#3b82f6',
-					'blue-light': '#93c5fd',
-					'blue-dark': '#1e40af',
+					'blue': '#6366f1',
+					'blue-light': '#a5b4fc',
+					'blue-dark': '#4338ca',
+					'purple': '#8b5cf6',
+					'purple-light': '#c4b5fd',
+					'purple-dark': '#6d28d9',
+					'pink': '#ec4899',
+					'pink-light': '#f9a8d4',
+					'pink-dark': '#be185d',
 					'gray': '#f3f4f6',
-					'gray-dark': '#374151'
+					'gray-dark': '#374151',
+					'gradient-start': '#6366f1',
+					'gradient-end': '#ec4899'
 				}
 			},
 			borderRadius: {
@@ -92,11 +100,20 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'pulse-opacity': {
+					'0%, 100%': { opacity: '1' },
+					'50%': { opacity: '0.5' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'pulse-opacity': 'pulse-opacity 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
+			},
+			backgroundImage: {
+				'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+				'pos-gradient': 'linear-gradient(to right, var(--pos-gradient-start), var(--pos-gradient-end))'
 			}
 		}
 	},

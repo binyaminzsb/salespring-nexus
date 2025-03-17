@@ -51,6 +51,71 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          created_at: string | null
+          email: string
+          full_name: string | null
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          full_name?: string | null
+          id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          full_name?: string | null
+          id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      sales: {
+        Row: {
+          amount: number
+          card_expiry: string
+          card_number: string
+          created_at: string | null
+          id: string
+          items: Json
+          status: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          card_expiry: string
+          card_number: string
+          created_at?: string | null
+          id?: string
+          items?: Json
+          status?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          card_expiry?: string
+          card_number?: string
+          created_at?: string | null
+          id?: string
+          items?: Json
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

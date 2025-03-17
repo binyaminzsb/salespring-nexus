@@ -9,9 +9,9 @@ import CustomItemForm from "@/components/dashboard/CustomItemForm";
 const NewSale = () => {
   return (
     <AppLayout>
-      <div className="container mx-auto py-8 px-4">
+      <div className="container mx-auto py-10 px-4">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 text-transparent bg-clip-text">New Sale</h1>
+          <h1 className="text-4xl font-bold logo-text">New Sale</h1>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -23,11 +23,12 @@ const NewSale = () => {
               </div>
             </div>
 
-            <Card className="h-full bg-gradient-to-br from-white to-indigo-50 shadow-md">
+            <Card className="h-full border-0 shadow-md overflow-hidden card-gradient">
+              <div className="h-1.5 bg-gradient-to-r from-indigo-500 to-purple-500"></div>
               <CardContent className="p-6">
                 <div className="space-y-4">
-                  <div className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg text-center border border-blue-100 shadow-sm">
-                    <h3 className="font-medium text-blue-700 text-lg">Quick Items</h3>
+                  <div className="p-6 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg text-center border border-indigo-100 shadow-sm">
+                    <h3 className="font-medium text-indigo-700 text-lg">Quick Items</h3>
                     <p className="text-sm text-gray-600 mt-2">
                       Add frequently sold items here. <br />
                       Or use the Custom Item form to add one-time items.
@@ -38,9 +39,9 @@ const NewSale = () => {
                     {['Coffee', 'Sandwich', 'Salad', 'Pastry', 'Juice', 'Water'].map((item, index) => (
                       <div 
                         key={index}
-                        className="p-4 border border-blue-100 rounded-lg text-center bg-white hover:bg-blue-50 hover:border-blue-300 transition-all cursor-pointer shadow-sm"
+                        className="p-4 border border-indigo-100 rounded-lg text-center bg-white hover:bg-indigo-50 hover:border-indigo-300 transition-all cursor-pointer shadow-sm"
                       >
-                        <span className="text-blue-700">{item}</span>
+                        <span className="text-indigo-700">{item}</span>
                       </div>
                     ))}
                   </div>

@@ -6,7 +6,7 @@ const Register = () => {
   return (
     <AuthLayout
       title="Create an Account"
-      description="Sign up to start using the BLANK POS system"
+      description="Sign up to start using the PULSE POS system"
     >
       <RegisterForm />
     </AuthLayout>

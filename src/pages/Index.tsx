@@ -5,7 +5,7 @@ import AuthLayout from "@/components/auth/AuthLayout";
 const Index = () => {
   return (
     <AuthLayout
-      title="Sign In to BLANK"
+      title="Sign In to PULSE"
       description="Enter your email and password to access your POS system"
     >
       <LoginForm />
