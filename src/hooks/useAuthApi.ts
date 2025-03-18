@@ -24,8 +24,8 @@ export const useAuthApi = () => {
         throw new Error("Username already taken");
       }
 
-      // Register with Supabase
-      const { error } = await supabase.auth.signUp({
+      // Register with Supabase with email confirmation disabled
+      const { error, data } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -33,14 +33,22 @@ export const useAuthApi = () => {
             name,
             username
           },
-          emailRedirectTo: `${window.location.origin}/dashboard`
+          emailRedirectTo: `${window.location.origin}/dashboard`,
         }
       });
 
       if (error) throw error;
       
-      toast.success("Account created successfully!");
-      navigate("/dashboard");
+      // Automatically sign in the user after successful registration
+      if (data.user) {
+        await supabase.auth.signInWithPassword({
+          email,
+          password
+        });
+        
+        toast.success("Account created successfully!");
+        navigate("/dashboard");
+      }
     } catch (error: any) {
       toast.error(error.message || "Failed to create account");
       throw error;
