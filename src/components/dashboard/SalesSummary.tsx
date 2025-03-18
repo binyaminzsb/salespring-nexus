@@ -38,7 +38,7 @@ const SalesSummary: React.FC = () => {
         </div>
       </CardHeader>
       <CardContent>
-        <div className="grid gap-4 mb-6">
+        <div className="grid gap-4 mb-6 md:grid-cols-2">
           <div className="flex justify-between items-center p-4 bg-slate-50 rounded-lg">
             <div className="text-sm font-medium text-gray-500">Total Sales</div>
             <div className="text-2xl font-bold">{formatCurrency(totalSales)}</div>

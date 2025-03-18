@@ -3,7 +3,7 @@ import React from "react";
 import AppLayout from "@/components/dashboard/AppLayout";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { ShoppingCart, BarChart2, Settings, ArrowRight, CreditCard, TrendingUp } from "lucide-react";
+import { ShoppingCart, BarChart2, Settings, ArrowRight, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import SalesSummary from "@/components/dashboard/SalesSummary";
 
@@ -99,8 +99,8 @@ const Dashboard = () => {
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-          <Card className="col-span-2 border-0 shadow-md">
+        <div className="grid grid-cols-1 gap-6 mb-10">
+          <Card className="border-0 shadow-md">
             <CardHeader>
               <CardTitle className="text-xl flex items-center">
                 <TrendingUp className="mr-2 h-5 w-5 text-indigo-600" />
@@ -110,51 +110,6 @@ const Dashboard = () => {
             <CardContent>
               <div className="h-80">
                 <SalesSummary />
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="border-0 shadow-md">
-            <CardHeader>
-              <CardTitle className="text-xl flex items-center">
-                <CreditCard className="mr-2 h-5 w-5 text-purple-600" />
-                Quick Stats
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="bg-gradient-to-r from-indigo-50 to-purple-50 p-4 rounded-lg">
-                  <p className="text-sm text-gray-500">Today's Sales</p>
-                  <p className="text-2xl font-bold">$1,240.50</p>
-                  <div className="flex items-center text-xs text-green-600 mt-1">
-                    <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
-                    </svg>
-                    <span>12% from yesterday</span>
-                  </div>
-                </div>
-                
-                <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-4 rounded-lg">
-                  <p className="text-sm text-gray-500">Total Transactions</p>
-                  <p className="text-2xl font-bold">156</p>
-                  <div className="flex items-center text-xs text-green-600 mt-1">
-                    <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
-                    </svg>
-                    <span>8% from last week</span>
-                  </div>
-                </div>
-                
-                <div className="bg-gradient-to-r from-pink-50 to-red-50 p-4 rounded-lg">
-                  <p className="text-sm text-gray-500">Average Sale</p>
-                  <p className="text-2xl font-bold">$78.65</p>
-                  <div className="flex items-center text-xs text-red-600 mt-1">
-                    <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-                    </svg>
-                    <span>3% from last week</span>
-                  </div>
-                </div>
               </div>
             </CardContent>
           </Card>
