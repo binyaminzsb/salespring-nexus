@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { UserRound, LogOut, Mail, Shield, AtSign } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -48,7 +49,7 @@ const Profile = () => {
       
       const { error } = await supabase
         .from('profiles')
-        .update({ name: name.trim() })
+        .update({ full_name: name.trim() })
         .eq('id', user.id);
         
       if (error) throw error;

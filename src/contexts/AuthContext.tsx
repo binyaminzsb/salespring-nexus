@@ -43,7 +43,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setUser({
             id: session.user.id,
             email: session.user.email || '',
-            name: profile?.name || '',
+            name: profile?.full_name || '',
             username: profile?.username || ''
           });
         } else {
@@ -67,7 +67,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUser({
           id: session.user.id,
           email: session.user.email || '',
-          name: profile?.name || '',
+          name: profile?.full_name || '',
           username: profile?.username || ''
         });
       }
