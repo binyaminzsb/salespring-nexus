@@ -13,6 +13,10 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
+  username: z.string()
+    .min(3, { message: "Username must be at least 3 characters" })
+    .max(20, { message: "Username cannot exceed 20 characters" })
+    .regex(/^[a-zA-Z0-9_]+$/, { message: "Username can only contain letters, numbers, and underscores" }),
   email: z.string().email({ message: "Please enter a valid email address" }),
   password: z.string().min(6, { message: "Password must be at least 6 characters" }),
   confirmPassword: z.string(),
@@ -32,6 +36,7 @@ const RegisterForm: React.FC = () => {
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
+      username: "",
       email: "",
       password: "",
       confirmPassword: "",
@@ -42,7 +47,7 @@ const RegisterForm: React.FC = () => {
     try {
       setIsLoading(true);
       setError(null);
-      await signUp(values.name, values.email, values.password);
+      await signUp(values.name, values.email, values.password, values.username);
     } catch (err: any) {
       setError(err.message || "Failed to create account");
     } finally {
@@ -68,6 +73,20 @@ const RegisterForm: React.FC = () => {
               <FormLabel>Name</FormLabel>
               <FormControl>
                 <Input placeholder="John Doe" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="username"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Username</FormLabel>
+              <FormControl>
+                <Input placeholder="johndoe123" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

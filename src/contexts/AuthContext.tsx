@@ -2,28 +2,26 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 // Define types for our user and context
 export interface User {
   id: string;
   name: string;
   email: string;
+  username?: string;
 }
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  signUp: (name: string, email: string, password: string) => Promise<void>;
-  signIn: (email: string, password: string) => Promise<void>;
+  signUp: (name: string, email: string, password: string, username: string) => Promise<void>;
+  signIn: (emailOrUsername: string, password: string) => Promise<void>;
   signOut: () => void;
 }
 
 // Create the context
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-// Mock user database (will be replaced with Supabase later)
-const MOCK_USERS_KEY = "blank_pos_users";
-const CURRENT_USER_KEY = "blank_pos_current_user";
 
 // Auth Provider component
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -31,49 +29,89 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Load user on mount
+  // Load user on mount and setup auth state listener
   useEffect(() => {
-    const loadUser = () => {
-      const storedUser = localStorage.getItem(CURRENT_USER_KEY);
-      if (storedUser) {
-        setUser(JSON.parse(storedUser));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (session) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+
+          setUser({
+            id: session.user.id,
+            email: session.user.email || '',
+            name: profile?.name || '',
+            username: profile?.username || ''
+          });
+        } else {
+          setUser(null);
+        }
+        setLoading(false);
       }
+    );
+
+    // Initial session check
+    const initializeAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+
+        setUser({
+          id: session.user.id,
+          email: session.user.email || '',
+          name: profile?.name || '',
+          username: profile?.username || ''
+        });
+      }
+      
       setLoading(false);
     };
 
-    loadUser();
+    initializeAuth();
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   // Sign up function
-  const signUp = async (name: string, email: string, password: string) => {
+  const signUp = async (name: string, email: string, password: string, username: string) => {
     try {
       setLoading(true);
       
-      // Get existing users from localStorage
-      const existingUsersJson = localStorage.getItem(MOCK_USERS_KEY);
-      const existingUsers = existingUsersJson ? JSON.parse(existingUsersJson) : [];
-      
-      // Check if user already exists
-      if (existingUsers.some((u: any) => u.email === email)) {
-        throw new Error("User with this email already exists");
+      // Check if username already exists
+      const { data: existingUsername } = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('username', username)
+        .single();
+
+      if (existingUsername) {
+        throw new Error("Username already taken");
       }
-      
-      // Create new user
-      const newUser = {
-        id: Date.now().toString(),
-        name,
+
+      // Register with Supabase
+      const { error } = await supabase.auth.signUp({
         email,
-        password, // In a real app, this would be hashed
-      };
-      
-      // Add to users array
-      const updatedUsers = [...existingUsers, newUser];
-      localStorage.setItem(MOCK_USERS_KEY, JSON.stringify(updatedUsers));
-      
-      // Set current user (but remove password)
-      const { password: _, ...userWithoutPassword } = newUser;
-      localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(userWithoutPassword));
-      setUser(userWithoutPassword);
+        password,
+        options: {
+          data: {
+            name,
+            username
+          },
+          emailRedirectTo: `${window.location.origin}/dashboard`
+        }
+      });
+
+      if (error) throw error;
       
       toast.success("Account created successfully!");
       navigate("/dashboard");
@@ -86,27 +124,41 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   // Sign in function
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (emailOrUsername: string, password: string) => {
     try {
       setLoading(true);
       
-      // Get users from localStorage
-      const usersJson = localStorage.getItem(MOCK_USERS_KEY);
-      const users = usersJson ? JSON.parse(usersJson) : [];
+      // Check if input is email or username
+      const isEmail = emailOrUsername.includes('@');
       
-      // Find user with matching email and password
-      const foundUser = users.find(
-        (u: any) => u.email === email && u.password === password
-      );
-      
-      if (!foundUser) {
-        throw new Error("Invalid email or password");
+      if (isEmail) {
+        // Sign in with email
+        const { error } = await supabase.auth.signInWithPassword({
+          email: emailOrUsername,
+          password
+        });
+        
+        if (error) throw error;
+      } else {
+        // Get email from username
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('email')
+          .eq('username', emailOrUsername)
+          .single();
+          
+        if (profileError || !profile) {
+          throw new Error("Invalid username or password");
+        }
+        
+        // Sign in with retrieved email
+        const { error } = await supabase.auth.signInWithPassword({
+          email: profile.email,
+          password
+        });
+        
+        if (error) throw error;
       }
-      
-      // Set current user (but remove password)
-      const { password: _, ...userWithoutPassword } = foundUser;
-      localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(userWithoutPassword));
-      setUser(userWithoutPassword);
       
       toast.success("Signed in successfully!");
       navigate("/dashboard");
@@ -119,8 +171,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   // Sign out function
-  const signOut = () => {
-    localStorage.removeItem(CURRENT_USER_KEY);
+  const signOut = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    
     setUser(null);
     toast.success("Signed out successfully");
     navigate("/");
