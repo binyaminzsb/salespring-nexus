@@ -13,11 +13,22 @@ const Profile = () => {
   const {
     name,
     setName,
+    username,
+    setUsername,
     isEditing,
     isLoading,
+    currentPassword,
+    setCurrentPassword,
+    newPassword,
+    setNewPassword,
+    confirmPassword,
+    setConfirmPassword,
+    isChangingPassword,
+    setIsChangingPassword,
     handleEditProfile,
     handleCancelEdit,
-    handleSaveChanges
+    handleSaveChanges,
+    handleChangePassword
   } = useProfileForm(user);
 
   if (!user) {
@@ -43,11 +54,22 @@ const Profile = () => {
             <ProfileForm
               user={user}
               name={name}
+              username={username}
               isEditing={isEditing}
               isLoading={isLoading}
+              isChangingPassword={isChangingPassword}
+              currentPassword={currentPassword}
+              newPassword={newPassword}
+              confirmPassword={confirmPassword}
               setName={setName}
+              setUsername={setUsername}
+              setCurrentPassword={setCurrentPassword}
+              setNewPassword={setNewPassword}
+              setConfirmPassword={setConfirmPassword}
+              setIsChangingPassword={setIsChangingPassword}
               handleCancelEdit={handleCancelEdit}
               handleSaveChanges={handleSaveChanges}
+              handleChangePassword={handleChangePassword}
             />
           </div>
         </div>
