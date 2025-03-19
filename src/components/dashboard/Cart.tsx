@@ -44,28 +44,31 @@ const Cart: React.FC = () => {
   };
 
   const handleProcessPayment = async () => {
+    let saleId = "demo-" + Date.now().toString();
+    
     try {
       setIsProcessing(true);
       
       // Simulate payment processing delay (5 seconds)
       await new Promise(resolve => setTimeout(resolve, 5000));
       
-      // Process the sale with card payment method
-      const saleId = await saveSale("card");
+      // Try to process the sale with card payment method
+      try {
+        saleId = await saveSale("card");
+      } catch (error) {
+        console.error("Payment processing error:", error);
+        // We'll still navigate to success page with a demo sale ID
+      }
       
-      // Close dialog and reset form
-      setIsPaymentDialogOpen(false);
-      
-      // Navigate to the success page
-      navigate(`/payment-success/${saleId}`);
     } catch (error) {
       console.error("Payment processing error:", error);
-      
-      // For demo purposes, still navigate to success page
-      const mockSaleId = "demo-" + Date.now().toString();
-      navigate(`/payment-success/${mockSaleId}`);
     } finally {
+      // Close dialog and reset form
+      setIsPaymentDialogOpen(false);
       setIsProcessing(false);
+      
+      // Always navigate to the success page
+      navigate(`/payment-success/${saleId}`);
     }
   };
 

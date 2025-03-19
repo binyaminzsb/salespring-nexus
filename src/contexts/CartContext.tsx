@@ -97,10 +97,6 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   // Save sale and generate receipt
   const saveSale = async (paymentMethod: string) => {
     try {
-      if (!user) {
-        throw new Error("User must be logged in to save sale");
-      }
-      
       // Calculate final amount
       const finalAmount = totalAmount;
       
@@ -108,35 +104,45 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
         throw new Error("Cannot process a sale with zero amount");
       }
       
-      // Create transaction in Supabase
-      const { data, error } = await supabase
-        .from('pos_transactions')
-        .insert({
-          total: finalAmount,
-          payment_method: paymentMethod,
-          user_id: user.id
-        })
-        .select()
-        .single();
+      let saleId = "demo-" + Date.now().toString();
       
-      if (error) {
-        console.error("Supabase error:", error);
-        throw new Error("Failed to save transaction to database");
+      // Try to save to Supabase if user is logged in
+      if (user) {
+        try {
+          // Create transaction in Supabase
+          const { data, error } = await supabase
+            .from('pos_transactions')
+            .insert({
+              total: finalAmount,
+              payment_method: paymentMethod,
+              user_id: user.id
+            })
+            .select()
+            .single();
+          
+          if (error) {
+            console.error("Supabase error:", error);
+            // Don't throw here, just log the error and continue with local storage
+          }
+          
+          if (data) {
+            saleId = data.id;
+          }
+        } catch (dbError) {
+          console.error("Database operation error:", dbError);
+          // Continue with local storage backup
+        }
       }
       
-      if (!data) {
-        throw new Error("No data returned from transaction");
-      }
-      
-      // Save to local storage as well for backup
+      // Always save to local storage as well (as backup or for guests)
       const sale = {
-        id: data.id,
+        id: saleId,
         items,
         customAmount: customAmount && !isNaN(parseFloat(customAmount)) ? parseFloat(customAmount) : 0,
         totalAmount: finalAmount,
         paymentMethod,
         date: new Date().toISOString(),
-        userId: user.id
+        userId: user ? user.id : 'guest'
       };
       
       // Get existing sales from localStorage
@@ -150,7 +156,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
       // Clear cart after successful sale
       clearCart();
       
-      return data.id;
+      return saleId;
     } catch (error: any) {
       console.error("Sale error:", error);
       toast.error(error.message || "Failed to process sale");
