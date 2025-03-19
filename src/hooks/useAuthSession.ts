@@ -11,6 +11,7 @@ export const useAuthSession = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (session) {
+          // Fetch the user profile from the 'profiles' table
           const { data: profile } = await supabase
             .from('profiles')
             .select('*')
@@ -34,6 +35,7 @@ export const useAuthSession = () => {
       const { data: { session } } = await supabase.auth.getSession();
       
       if (session) {
+        // Fetch the user profile from the 'profiles' table
         const { data: profile } = await supabase
           .from('profiles')
           .select('*')

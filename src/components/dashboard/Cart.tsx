@@ -47,8 +47,8 @@ const Cart: React.FC = () => {
     try {
       setIsProcessing(true);
       
-      // Simulate payment processing delay (1 second)
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Simulate payment processing delay (5 seconds)
+      await new Promise(resolve => setTimeout(resolve, 5000));
       
       // Process the sale with card payment method
       const saleId = await saveSale("card");
@@ -162,7 +162,7 @@ const Cart: React.FC = () => {
           <DialogHeader>
             <DialogTitle className="text-center text-blue-800 text-xl">Payment</DialogTitle>
             <DialogDescription className="text-center">
-              Process payment to complete your purchase
+              Tap Your Card to complete your purchase
             </DialogDescription>
           </DialogHeader>
           
@@ -175,10 +175,6 @@ const Cart: React.FC = () => {
             
             <div className="mt-6 text-center text-xl font-bold">
               {formatCurrency(totalAmount)}
-            </div>
-            
-            <div className="mt-4 text-center text-sm text-gray-500">
-              Click "Process Payment" to complete your purchase
             </div>
           </div>
           
@@ -202,7 +198,7 @@ const Cart: React.FC = () => {
                   Processing...
                 </>
               ) : (
-                `Process Payment`
+                `Tap to Pay`
               )}
             </Button>
           </DialogFooter>
