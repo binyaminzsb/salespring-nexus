@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -134,6 +133,7 @@ export const useAuthApi = () => {
         throw updateError;
       }
       
+      toast.success("Password updated successfully");
       return true;
     } catch (error: any) {
       console.error("Password update error:", error);

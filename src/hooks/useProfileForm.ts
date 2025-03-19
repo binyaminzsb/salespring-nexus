@@ -45,7 +45,6 @@ export const useProfileForm = (user: User | null) => {
       await updatePassword(currentPassword, newPassword);
 
       // Handle success
-      toast.success("Password updated successfully");
       setIsChangingPassword(false);
       resetPasswordFields();
     } catch (error: any) {
