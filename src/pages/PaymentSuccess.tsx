@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Check, Download, ShoppingCart, Printer } from "lucide-react";
@@ -34,7 +33,7 @@ const PaymentSuccess = () => {
             // Convert to local sale format
             setSale({
               id: data.id,
-              totalAmount: parseFloat(data.total),
+              totalAmount: parseFloat(data.total.toString()),
               paymentMethod: data.payment_method,
               date: data.created_at,
               items: [], // We don't have items in the transaction table
@@ -46,7 +45,7 @@ const PaymentSuccess = () => {
             const timer = setTimeout(() => {
               downloadPdfReceipt({
                 id: data.id,
-                totalAmount: parseFloat(data.total),
+                totalAmount: parseFloat(data.total.toString()),
                 paymentMethod: data.payment_method,
                 date: data.created_at,
                 items: [], 
