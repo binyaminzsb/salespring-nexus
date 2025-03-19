@@ -1,11 +1,11 @@
 
 import React from "react";
-import { CartItem } from "@/types/cart";
-import CartItem from "./CartItem";
+import { CartItem as CartItemType } from "@/types/cart";
+import CartItemComponent from "./CartItem";
 import { formatCurrency } from "@/utils/salesUtils";
 
 interface CartItemListProps {
-  items: CartItem[];
+  items: CartItemType[];
   customAmount: string;
   onQuantityChange: (id: string, change: number) => void;
   onRemoveItem: (id: string) => void;
@@ -30,7 +30,7 @@ const CartItemList: React.FC<CartItemListProps> = ({
   return (
     <div className="space-y-4">
       {items.map((item) => (
-        <CartItem
+        <CartItemComponent
           key={item.id}
           item={item}
           onQuantityChange={onQuantityChange}
