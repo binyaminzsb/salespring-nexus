@@ -33,9 +33,9 @@ export const useProfileForm = (user: User | null) => {
     try {
       setIsLoading(true);
       
-      // Prepare update data
+      // Prepare update data with full_name field to match database schema
       const updateData = {
-        name: name.trim()
+        full_name: name.trim()
       };
       
       const { error } = await supabase
