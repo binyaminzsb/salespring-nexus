@@ -10,9 +10,14 @@ interface ProfileAvatarProps {
 
 export const ProfileAvatar: React.FC<ProfileAvatarProps> = ({ user }) => {
   const getUserInitials = () => {
-    return user.email
-      ? user.email[0].toUpperCase()
-      : "U";
+    if (user.name) {
+      return user.name
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase();
+    }
+    return user.email ? user.email[0].toUpperCase() : "U";
   };
 
   return (
@@ -26,6 +31,7 @@ export const ProfileAvatar: React.FC<ProfileAvatarProps> = ({ user }) => {
             </AvatarFallback>
           </Avatar>
         </div>
+        <p className="font-medium text-gray-800">{user.name || "User"}</p>
         <p className="text-gray-500 mb-1">{user.email}</p>
       </CardContent>
     </Card>

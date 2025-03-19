@@ -42,7 +42,7 @@ export const useProfileForm = (user: User | null) => {
         throw new Error("Current password is incorrect");
       }
 
-      // Then update the password - without passing the currentPassword property
+      // Then update the password
       const { error } = await supabase.auth.updateUser({
         password: newPassword
       });

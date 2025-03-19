@@ -19,7 +19,7 @@ export const useAuthApi = () => {
         password,
         options: {
           data: {
-            name
+            full_name: name  // Changed from name to full_name to match profiles table
           },
           emailRedirectTo: `${window.location.origin}/dashboard`,
         }
@@ -29,10 +29,23 @@ export const useAuthApi = () => {
       
       // Automatically sign in the user after successful registration
       if (data.user) {
-        await supabase.auth.signInWithPassword({
+        const { error: signInError } = await supabase.auth.signInWithPassword({
           email,
           password
         });
+        
+        if (signInError) throw signInError;
+
+        // Insert into profiles table directly to ensure data is saved
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .upsert({
+            id: data.user.id,
+            full_name: name,
+            email: email
+          });
+
+        if (profileError) throw profileError;
         
         toast.success("Account created successfully!");
         navigate("/dashboard");
