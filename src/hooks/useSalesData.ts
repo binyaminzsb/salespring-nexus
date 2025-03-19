@@ -73,7 +73,7 @@ export const useSalesData = (user: User | null) => {
       if (!acc[date]) {
         acc[date] = 0;
       }
-      acc[date] += sale.totalAmount || parseFloat(sale.total.toString()) || 0;
+      acc[date] += sale.totalAmount || parseFloat(sale.total?.toString() || "0") || 0;
       return acc;
     }, {} as Record<string, number>);
     
