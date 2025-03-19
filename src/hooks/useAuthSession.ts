@@ -8,6 +8,8 @@ export const useAuthSession = () => {
   const [loading, setLoading] = useState(true);
 
   const fetchUserProfile = async (userId: string) => {
+    console.log("Fetching profile for user ID:", userId);
+    
     const { data, error } = await supabase
       .from('profiles')
       .select('email, full_name')
@@ -19,6 +21,7 @@ export const useAuthSession = () => {
       return null;
     }
     
+    console.log("Profile data retrieved:", data);
     return data;
   };
 
