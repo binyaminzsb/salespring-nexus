@@ -2,9 +2,9 @@
 import React from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { User } from "@/types/auth";
-import { AtSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UserRound } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface ProfileAvatarProps {
   user: User;
@@ -19,10 +19,12 @@ export const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
 }) => {
   const getUserInitials = () => {
     return user.name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase();
+      ? user.name
+          .split(" ")
+          .map((n) => n[0])
+          .join("")
+          .toUpperCase()
+      : "U";
   };
 
   return (
@@ -36,14 +38,8 @@ export const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
             </AvatarFallback>
           </Avatar>
         </div>
-        <h2 className="text-xl font-semibold">{user.name}</h2>
+        <h2 className="text-xl font-semibold">{user.name || "User"}</h2>
         <p className="text-gray-500 mb-1">{user.email}</p>
-        {user.username && (
-          <p className="text-gray-500 flex items-center justify-center">
-            <AtSign className="h-3 w-3 mr-1" />
-            {user.username}
-          </p>
-        )}
         <div className="mt-6">
           {!isEditing && (
             <Button 
@@ -60,6 +56,3 @@ export const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
     </Card>
   );
 };
-
-// Import at the top of the file
-import { Card, CardContent } from "@/components/ui/card";

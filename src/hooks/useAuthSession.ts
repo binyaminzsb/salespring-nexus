@@ -20,8 +20,7 @@ export const useAuthSession = () => {
           setUser({
             id: session.user.id,
             email: session.user.email || '',
-            name: profile?.full_name || '',
-            username: profile?.username || ''
+            name: profile?.name || '',
           });
         } else {
           setUser(null);
@@ -44,8 +43,7 @@ export const useAuthSession = () => {
         setUser({
           id: session.user.id,
           email: session.user.email || '',
-          name: profile?.full_name || '',
-          username: profile?.username || ''
+          name: profile?.name || '',
         });
       }
       

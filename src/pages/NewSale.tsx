@@ -6,15 +6,18 @@ import NumberPad from "@/components/dashboard/NumberPad";
 import Cart from "@/components/dashboard/Cart";
 import CustomItemForm from "@/components/dashboard/CustomItemForm";
 import { useCart } from "@/contexts/CartContext";
+import { toast } from "sonner";
 
 const NewSale = () => {
   const { addItem } = useCart();
 
   const handleQuickItemClick = (item: string, price: number) => {
+    console.log("Adding quick item:", item, price);
     addItem({
       name: item,
       price: price
     });
+    toast.success(`Added ${item} to cart`);
   };
 
   // Sample quick items with prices

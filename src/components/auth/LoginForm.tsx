@@ -12,7 +12,7 @@ import { AlertCircle, Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const formSchema = z.object({
-  emailOrUsername: z.string().min(1, { message: "Email or username is required" }),
+  email: z.string().min(1, { message: "Email is required" }),
   password: z.string().min(1, { message: "Password is required" }),
 });
 
@@ -26,7 +26,7 @@ const LoginForm: React.FC = () => {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      emailOrUsername: "",
+      email: "",
       password: "",
     },
   });
@@ -35,7 +35,7 @@ const LoginForm: React.FC = () => {
     try {
       setIsLoading(true);
       setError(null);
-      await signIn(values.emailOrUsername, values.password);
+      await signIn(values.email, values.password);
     } catch (err: any) {
       setError(err.message || "Failed to sign in");
     } finally {
@@ -55,12 +55,12 @@ const LoginForm: React.FC = () => {
         
         <FormField
           control={form.control}
-          name="emailOrUsername"
+          name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email or Username</FormLabel>
+              <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input placeholder="Email or Username" {...field} />
+                <Input placeholder="email@example.com" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

@@ -13,8 +13,6 @@ const Profile = () => {
   const {
     name,
     setName,
-    username,
-    setUsername,
     isEditing,
     isLoading,
     currentPassword,
@@ -54,7 +52,6 @@ const Profile = () => {
             <ProfileForm
               user={user}
               name={name}
-              username={username}
               isEditing={isEditing}
               isLoading={isLoading}
               isChangingPassword={isChangingPassword}
@@ -62,7 +59,6 @@ const Profile = () => {
               newPassword={newPassword}
               confirmPassword={confirmPassword}
               setName={setName}
-              setUsername={setUsername}
               setCurrentPassword={setCurrentPassword}
               setNewPassword={setNewPassword}
               setConfirmPassword={setConfirmPassword}

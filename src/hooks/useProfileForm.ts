@@ -6,7 +6,6 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const useProfileForm = (user: User | null) => {
   const [name, setName] = useState(user?.name || "");
-  const [username, setUsername] = useState(user?.username || "");
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
@@ -20,7 +19,6 @@ export const useProfileForm = (user: User | null) => {
 
   const handleCancelEdit = () => {
     setName(user?.name || "");
-    setUsername(user?.username || "");
     setIsEditing(false);
   };
 
@@ -36,14 +34,9 @@ export const useProfileForm = (user: User | null) => {
       setIsLoading(true);
       
       // Prepare update data
-      const updateData: { full_name: string; username?: string } = {
-        full_name: name.trim()
+      const updateData = {
+        name: name.trim()
       };
-      
-      // Only update username if it's not set yet and a new one is provided
-      if (!user.username && username.trim()) {
-        updateData.username = username.trim();
-      }
       
       const { error } = await supabase
         .from('profiles')
@@ -54,9 +47,6 @@ export const useProfileForm = (user: User | null) => {
       
       // After successful update, update the user object in memory
       user.name = name.trim();
-      if (!user.username && username.trim()) {
-        user.username = username.trim();
-      }
       
       toast.success("Profile updated successfully");
       setIsEditing(false);
@@ -120,8 +110,6 @@ export const useProfileForm = (user: User | null) => {
   return {
     name,
     setName,
-    username,
-    setUsername,
     isEditing,
     isLoading,
     handleEditProfile,

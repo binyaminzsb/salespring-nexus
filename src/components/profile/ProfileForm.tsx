@@ -4,12 +4,11 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { User } from "@/types/auth";
-import { Loader2, UserRound, AtSign, Mail, Shield, EyeOff, Eye } from "lucide-react";
+import { Loader2, UserRound, Mail, Shield, EyeOff, Eye } from "lucide-react";
 
 interface ProfileFormProps {
   user: User;
   name: string;
-  username: string;
   isEditing: boolean;
   isLoading: boolean;
   isChangingPassword: boolean;
@@ -17,7 +16,6 @@ interface ProfileFormProps {
   newPassword: string;
   confirmPassword: string;
   setName: (name: string) => void;
-  setUsername: (username: string) => void;
   setCurrentPassword: (password: string) => void;
   setNewPassword: (password: string) => void;
   setConfirmPassword: (password: string) => void;
@@ -30,7 +28,6 @@ interface ProfileFormProps {
 export const ProfileForm: React.FC<ProfileFormProps> = ({
   user,
   name,
-  username,
   isEditing,
   isLoading,
   isChangingPassword,
@@ -38,7 +35,6 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
   newPassword,
   confirmPassword,
   setName,
-  setUsername,
   setCurrentPassword,
   setNewPassword,
   setConfirmPassword,
@@ -84,35 +80,6 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
               <div className="grid grid-cols-3 text-sm">
                 <div className="text-gray-500">User ID</div>
                 <div className="col-span-2 font-medium">{user.id}</div>
-              </div>
-            </div>
-          </div>
-          
-          <div className="space-y-2">
-            <div className="flex items-center text-gray-700">
-              <AtSign className="h-4 w-4 mr-2 text-blue-600" />
-              <span className="font-medium">Username</span>
-            </div>
-            <div className="bg-gray-50 p-4 rounded-lg space-y-2">
-              <div className="grid grid-cols-3 text-sm items-center">
-                <div className="text-gray-500">Username</div>
-                <div className="col-span-2">
-                  {isEditing && !user.username ? (
-                    <Input
-                      value={username}
-                      onChange={(e) => setUsername(e.target.value)}
-                      placeholder="Enter a username"
-                      className="bg-white"
-                    />
-                  ) : (
-                    <div className="font-medium flex items-center">
-                      {user.username || "No username set"}
-                      {user.username && !isEditing && (
-                        <span className="ml-2 text-xs text-gray-400">(Cannot be changed)</span>
-                      )}
-                    </div>
-                  )}
-                </div>
               </div>
             </div>
           </div>

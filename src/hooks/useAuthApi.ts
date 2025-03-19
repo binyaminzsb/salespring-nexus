@@ -9,20 +9,9 @@ export const useAuthApi = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const signUp = async (name: string, email: string, password: string, username: string) => {
+  const signUp = async (name: string, email: string, password: string) => {
     try {
       setLoading(true);
-      
-      // Check if username already exists
-      const { data: existingUsername } = await supabase
-        .from('profiles')
-        .select('username')
-        .eq('username', username)
-        .single();
-
-      if (existingUsername) {
-        throw new Error("Username already taken");
-      }
 
       // Register with Supabase with email confirmation disabled
       const { error, data } = await supabase.auth.signUp({
@@ -30,8 +19,7 @@ export const useAuthApi = () => {
         password,
         options: {
           data: {
-            name,
-            username
+            name
           },
           emailRedirectTo: `${window.location.origin}/dashboard`,
         }
@@ -57,41 +45,16 @@ export const useAuthApi = () => {
     }
   };
 
-  const signIn = async (emailOrUsername: string, password: string) => {
+  const signIn = async (email: string, password: string) => {
     try {
       setLoading(true);
       
-      // Check if input is email or username
-      const isEmail = emailOrUsername.includes('@');
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
       
-      if (isEmail) {
-        // Sign in with email
-        const { error } = await supabase.auth.signInWithPassword({
-          email: emailOrUsername,
-          password
-        });
-        
-        if (error) throw error;
-      } else {
-        // Get email from username
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('email')
-          .eq('username', emailOrUsername)
-          .single();
-          
-        if (profileError || !profile) {
-          throw new Error("Invalid username or password");
-        }
-        
-        // Sign in with retrieved email
-        const { error } = await supabase.auth.signInWithPassword({
-          email: profile.email,
-          password
-        });
-        
-        if (error) throw error;
-      }
+      if (error) throw error;
       
       toast.success("Signed in successfully!");
       navigate("/dashboard");
