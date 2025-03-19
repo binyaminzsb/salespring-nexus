@@ -1,27 +1,17 @@
 
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Trash2, Plus, Minus, CreditCard, Loader2 } from "lucide-react";
+import { CreditCard } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/utils/salesUtils";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { toast } from "sonner";
+import CartItemList from "./CartItemList";
+import PaymentDialog from "./PaymentDialog";
 
 const Cart: React.FC = () => {
-  const { items, customAmount, totalAmount, updateItemQuantity, removeItem, clearCart, saveSale } = useCart();
-  const navigate = useNavigate();
-  
+  const { items, customAmount, totalAmount, updateItemQuantity, removeItem, clearCart } = useCart();
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
 
   const handleQuantityChange = (id: string, change: number) => {
     const item = items.find(item => item.id === id);
@@ -43,50 +33,6 @@ const Cart: React.FC = () => {
     setIsPaymentDialogOpen(true);
   };
 
-  const handleProcessPayment = async () => {
-    try {
-      setIsProcessing(true);
-      
-      // Simulate payment processing delay (3 seconds instead of 5)
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      
-      // Try to process the sale with card payment method
-      try {
-        const saleId = await saveSale("card");
-        if (!saleId) {
-          throw new Error("Failed to get transaction ID");
-        }
-        
-        // Close dialog
-        setIsPaymentDialogOpen(false);
-        
-        // Navigate to the success page
-        navigate(`/payment-success/${saleId}`);
-      } catch (error: any) {
-        console.error("Payment processing error:", error);
-        setIsProcessing(false);
-        setIsPaymentDialogOpen(false);
-        
-        // Show more specific error message
-        if (error.message.includes("admin_users")) {
-          toast.error("Database configuration error. Using local storage instead.");
-          
-          // Fall back to local storage only
-          const localSaleId = `local-${Date.now()}`;
-          toast.success("Transaction saved locally");
-          navigate(`/payment-success/${localSaleId}`);
-        } else {
-          toast.error(error.message || "Failed to process payment. Please try again.");
-        }
-      }
-    } catch (error) {
-      console.error("Payment processing error:", error);
-      setIsProcessing(false);
-      setIsPaymentDialogOpen(false);
-      toast.error("An unexpected error occurred. Please try again.");
-    }
-  };
-
   return (
     <>
       <Card className="h-full flex flex-col bg-gradient-to-br from-white to-blue-50">
@@ -105,58 +51,12 @@ const Cart: React.FC = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="flex-1 overflow-auto">
-          {items.length === 0 && !customAmount ? (
-            <div className="text-center py-8 text-gray-500">
-              Cart is empty
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {items.map((item) => (
-                <div key={item.id} className="flex justify-between items-center p-2 border-b border-blue-100">
-                  <div className="flex-1">
-                    <div className="font-medium text-gray-800">{item.name}</div>
-                    <div className="text-sm text-blue-600">
-                      {formatCurrency(item.price)} each
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="h-8 w-8 border-blue-300 text-blue-700"
-                      onClick={() => handleQuantityChange(item.id, -1)}
-                    >
-                      <Minus className="h-4 w-4" />
-                    </Button>
-                    <span className="w-8 text-center">{item.quantity}</span>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="h-8 w-8 border-blue-300 text-blue-700"
-                      onClick={() => handleQuantityChange(item.id, 1)}
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-red-500 hover:bg-red-50"
-                      onClick={() => handleRemoveItem(item.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-              
-              {customAmount && parseFloat(customAmount) > 0 && (
-                <div className="flex justify-between items-center p-2 border-b border-blue-100">
-                  <div className="font-medium text-gray-800">Custom Amount</div>
-                  <div className="text-blue-600">{formatCurrency(parseFloat(customAmount))}</div>
-                </div>
-              )}
-            </div>
-          )}
+          <CartItemList
+            items={items}
+            customAmount={customAmount}
+            onQuantityChange={handleQuantityChange}
+            onRemoveItem={handleRemoveItem}
+          />
         </CardContent>
         <CardFooter className="flex-col border-t pt-4 bg-gradient-to-b from-blue-50 to-blue-100 rounded-b-lg">
           <div className="w-full flex justify-between text-lg font-bold mb-4">
@@ -175,53 +75,11 @@ const Cart: React.FC = () => {
         </CardFooter>
       </Card>
 
-      <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
-        <DialogContent className="sm:max-w-md bg-gradient-to-br from-white to-blue-50">
-          <DialogHeader>
-            <DialogTitle className="text-center text-blue-800 text-xl">Payment</DialogTitle>
-            <DialogDescription className="text-center">
-              Tap Your Card to complete your purchase
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="py-4">
-            <div className="flex justify-center items-center h-24">
-              <div className="flex gap-4">
-                <CreditCard size={64} className="text-blue-600" />
-              </div>
-            </div>
-            
-            <div className="mt-6 text-center text-xl font-bold">
-              {formatCurrency(totalAmount)}
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsPaymentDialogOpen(false)}
-              disabled={isProcessing}
-              className="border-blue-300 text-blue-700"
-            >
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleProcessPayment} 
-              disabled={isProcessing}
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
-            >
-              {isProcessing ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Processing...
-                </>
-              ) : (
-                `Tap to Pay`
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <PaymentDialog
+        open={isPaymentDialogOpen}
+        onOpenChange={setIsPaymentDialogOpen}
+        totalAmount={totalAmount}
+      />
     </>
   );
 };
