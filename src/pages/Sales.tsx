@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import AppLayout from "@/components/dashboard/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -50,7 +51,7 @@ const Sales = () => {
             // Convert Supabase transaction format to match local sales format
             supaSales = data.map(transaction => ({
               id: transaction.id,
-              totalAmount: parseFloat(transaction.total),
+              totalAmount: parseFloat(transaction.total.toString()),
               paymentMethod: transaction.payment_method,
               date: transaction.created_at,
               userId: transaction.user_id,
@@ -88,7 +89,7 @@ const Sales = () => {
       if (!acc[date]) {
         acc[date] = 0;
       }
-      acc[date] += sale.totalAmount || parseFloat(sale.total) || 0;
+      acc[date] += sale.totalAmount || parseFloat(sale.total.toString()) || 0;
       return acc;
     }, {});
     
@@ -108,7 +109,7 @@ const Sales = () => {
 
   const filteredSales = filterSalesByPeriod(sales, period);
   const totalAmount = filteredSales.reduce(
-    (total, sale) => total + (sale.totalAmount || parseFloat(sale.total) || 0),
+    (total, sale) => total + (sale.totalAmount || parseFloat(sale.total ? sale.total.toString() : "0") || 0),
     0
   );
 
@@ -235,7 +236,7 @@ const Sales = () => {
                         </TableCell>
                         <TableCell>{sale.paymentMethod || sale.payment_method}</TableCell>
                         <TableCell className="text-right">
-                          {formatCurrency(sale.totalAmount || parseFloat(sale.total))}
+                          {formatCurrency(sale.totalAmount || parseFloat(sale.total ? sale.total.toString() : "0"))}
                         </TableCell>
                       </TableRow>
                     ))}
