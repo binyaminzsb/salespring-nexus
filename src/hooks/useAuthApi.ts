@@ -100,10 +100,50 @@ export const useAuthApi = () => {
     setLoading(false);
   };
 
+  const updatePassword = async (currentPassword: string, newPassword: string) => {
+    try {
+      setLoading(true);
+      
+      // First, get the user's email
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user || !user.email) {
+        throw new Error("User not found or email not available");
+      }
+      
+      // Verify the current password by attempting to sign in
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: currentPassword
+      });
+      
+      if (signInError) {
+        throw new Error("Current password is incorrect");
+      }
+      
+      // Update the password
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+      
+      if (updateError) {
+        throw updateError;
+      }
+      
+      return true;
+    } catch (error: any) {
+      console.error("Password update error:", error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     loading,
     signUp,
     signIn,
-    signOut
+    signOut,
+    updatePassword
   };
 };

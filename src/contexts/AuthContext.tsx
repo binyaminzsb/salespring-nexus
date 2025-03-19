@@ -10,7 +10,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 // Auth Provider component
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const { user, loading: sessionLoading } = useAuthSession();
-  const { loading: apiLoading, signUp, signIn, signOut } = useAuthApi();
+  const { loading: apiLoading, signUp, signIn, signOut, updatePassword } = useAuthApi();
 
   // Combine loading states
   const loading = sessionLoading || apiLoading;
@@ -22,6 +22,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     signUp,
     signIn,
     signOut,
+    updatePassword,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
