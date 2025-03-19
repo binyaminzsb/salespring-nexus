@@ -52,6 +52,12 @@ export const useProfileForm = (user: User | null) => {
         
       if (error) throw error;
       
+      // After successful update, update the user object in memory
+      user.name = name.trim();
+      if (!user.username && username.trim()) {
+        user.username = username.trim();
+      }
+      
       toast.success("Profile updated successfully");
       setIsEditing(false);
     } catch (error: any) {
@@ -82,21 +88,10 @@ export const useProfileForm = (user: User | null) => {
     try {
       setIsLoading(true);
 
-      // First verify the current password
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: user.email,
-        password: currentPassword
-      });
-
-      if (signInError) {
-        toast.error("Current password is incorrect");
-        setIsLoading(false);
-        return;
-      }
-
-      // Update the password
+      // Update the password directly
       const { error } = await supabase.auth.updateUser({
-        password: newPassword
+        password: newPassword,
+        currentPassword: currentPassword
       });
 
       if (error) throw error;

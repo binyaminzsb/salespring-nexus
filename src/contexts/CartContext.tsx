@@ -43,19 +43,28 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
       (total, item) => total + item.price * item.quantity,
       0
     );
-    const customTotal = customAmount ? parseFloat(customAmount) : 0;
+    const customTotal = customAmount && !isNaN(parseFloat(customAmount)) ? parseFloat(customAmount) : 0;
     setTotalAmount(itemsTotal + customTotal);
   }, [items, customAmount]);
 
   // Add item to cart
   const addItem = (item: Omit<CartItem, "id" | "quantity">) => {
-    const newItem = {
-      ...item,
-      id: Date.now().toString(),
-      quantity: 1,
-    };
-    setItems((prevItems) => [...prevItems, newItem]);
-    toast.success(`Added ${item.name} to cart`);
+    // Check if item already exists
+    const existingItem = items.find(i => i.name === item.name);
+    
+    if (existingItem) {
+      // Update quantity if item already exists
+      updateItemQuantity(existingItem.id, existingItem.quantity + 1);
+    } else {
+      // Add new item
+      const newItem = {
+        ...item,
+        id: Date.now().toString(),
+        quantity: 1,
+      };
+      setItems((prevItems) => [...prevItems, newItem]);
+      toast.success(`Added ${item.name} to cart`);
+    }
   };
 
   // Add custom amount
@@ -95,6 +104,10 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
       // Calculate final amount
       const finalAmount = totalAmount;
       
+      if (finalAmount <= 0) {
+        throw new Error("Cannot process a sale with zero amount");
+      }
+      
       // Create transaction in Supabase
       const { data, error } = await supabase
         .from('pos_transactions')
@@ -106,13 +119,20 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
         .select()
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase error:", error);
+        throw new Error("Failed to save transaction to database");
+      }
+      
+      if (!data) {
+        throw new Error("No data returned from transaction");
+      }
       
       // Save to local storage as well for backup
       const sale = {
         id: data.id,
         items,
-        customAmount: customAmount ? parseFloat(customAmount) : 0,
+        customAmount: customAmount && !isNaN(parseFloat(customAmount)) ? parseFloat(customAmount) : 0,
         totalAmount: finalAmount,
         paymentMethod,
         date: new Date().toISOString(),
@@ -132,7 +152,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
       
       return data.id;
     } catch (error: any) {
-      console.error(error);
+      console.error("Sale error:", error);
       toast.error(error.message || "Failed to process sale");
       throw error;
     }

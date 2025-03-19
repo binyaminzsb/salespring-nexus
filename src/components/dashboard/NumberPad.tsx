@@ -16,7 +16,7 @@ const NumberPad: React.FC = () => {
       // Update cart with the new value
       addCustomAmount(num.toString());
     } else {
-      // Append digit to current value
+      // Append digit to current value - no digit limit
       const newValue = displayValue + num.toString();
       setDisplayValue(newValue);
       // Update cart with the new value

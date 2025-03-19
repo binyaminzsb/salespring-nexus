@@ -59,9 +59,9 @@ const Cart: React.FC = () => {
       // Navigate to the success page
       navigate(`/payment-success/${saleId}`);
     } catch (error) {
-      toast.error("Payment processing failed");
-    } finally {
+      console.error("Payment processing error:", error);
       setIsProcessing(false);
+      toast.error("Payment processing failed. Please try again.");
     }
   };
 
@@ -158,21 +158,16 @@ const Cart: React.FC = () => {
           <DialogHeader>
             <DialogTitle className="text-center text-blue-800 text-xl">Payment</DialogTitle>
             <DialogDescription className="text-center">
-              Tap your card or phone to complete your purchase.
+              Tap card to complete your purchase
             </DialogDescription>
           </DialogHeader>
           
           <div className="py-4">
             <div className="flex justify-center items-center h-24">
-              <img 
-                src="/payment-icons/card-tap.svg" 
-                alt="Tap card" 
-                className="h-full object-contain"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.src = "/payment-icons/visa.png"; // Fallback image
-                }}
-              />
+              <div className="flex flex-row gap-2">
+                <img src="/payment-icons/visa.png" alt="Visa" className="h-12 object-contain" />
+                <img src="/payment-icons/mastercard.png" alt="Mastercard" className="h-12 object-contain" />
+              </div>
             </div>
             
             <div className="mt-6 text-center text-xl font-bold">
@@ -180,7 +175,7 @@ const Cart: React.FC = () => {
             </div>
             
             <div className="mt-4 text-center text-sm text-gray-500">
-              Tap your card or phone when prompted by the terminal
+              Please tap your card on the reader to complete payment
             </div>
           </div>
           
