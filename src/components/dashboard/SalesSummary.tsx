@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -31,11 +30,19 @@ const SalesSummary: React.FC = () => {
         return;
       }
       
-      setSalesData(data || []);
-      
-      // Generate chart data
-      if (data) {
+      if (data && data.length > 0) {
+        setSalesData(data);
+        // Generate chart data
         setChartData(groupTransactionsByDay(data));
+      } else {
+        // Try to get sales from localStorage as fallback
+        const salesJson = localStorage.getItem("blank_pos_sales");
+        if (salesJson) {
+          const localSales = JSON.parse(salesJson);
+          const userSales = localSales.filter((sale: any) => sale.userId === user.id);
+          setSalesData(userSales);
+          setChartData(groupTransactionsByDay(userSales));
+        }
       }
     } catch (error) {
       console.error('Error:', error);
@@ -47,7 +54,7 @@ const SalesSummary: React.FC = () => {
   // Group transactions by day
   const groupTransactionsByDay = (transactions: any[]) => {
     const grouped = transactions.reduce((acc, transaction) => {
-      const date = new Date(transaction.created_at).toLocaleDateString();
+      const date = new Date(transaction.created_at || transaction.date).toLocaleDateString();
       
       if (!acc[date]) {
         acc[date] = {
@@ -57,7 +64,8 @@ const SalesSummary: React.FC = () => {
         };
       }
       
-      acc[date].total += parseFloat(transaction.total);
+      const amount = transaction.total || transaction.totalAmount || 0;
+      acc[date].total += parseFloat(amount);
       acc[date].count += 1;
       
       return acc;
@@ -88,11 +96,14 @@ const SalesSummary: React.FC = () => {
         break;
     }
     
-    const filteredSales = salesData.filter(sale => 
-      new Date(sale.created_at) >= periodStart && new Date(sale.created_at) <= now
-    );
+    const filteredSales = salesData.filter(sale => {
+      const saleDate = new Date(sale.created_at || sale.date);
+      return saleDate >= periodStart && saleDate <= now;
+    });
     
-    return filteredSales.reduce((sum, sale) => sum + parseFloat(sale.total), 0);
+    return filteredSales.reduce((sum, sale) => {
+      return sum + parseFloat(sale.total || sale.totalAmount || 0);
+    }, 0);
   };
 
   useEffect(() => {

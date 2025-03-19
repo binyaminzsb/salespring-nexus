@@ -8,30 +8,97 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { downloadReceipt, formatCurrency } from "@/utils/salesUtils";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const PaymentSuccess = () => {
   const { saleId } = useParams<{ saleId: string }>();
   const navigate = useNavigate();
   const [sale, setSale] = useState<any | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch the sale details from localStorage
-    const salesJson = localStorage.getItem("blank_pos_sales");
-    const sales = salesJson ? JSON.parse(salesJson) : [];
-    const foundSale = sales.find((s: any) => s.id === saleId);
-    
-    if (foundSale) {
-      setSale(foundSale);
+    const fetchSaleDetails = async () => {
+      setLoading(true);
       
-      // Auto-download PDF receipt after 1 second
-      const timer = setTimeout(() => {
-        if (foundSale) {
-          downloadPdfReceipt(foundSale);
+      try {
+        // First try to get from Supabase
+        if (saleId && saleId.length > 10) { // Real Supabase UUID is longer than demo IDs
+          const { data, error } = await supabase
+            .from('pos_transactions')
+            .select('*')
+            .eq('id', saleId)
+            .single();
+            
+          if (!error && data) {
+            // Convert to local sale format
+            setSale({
+              id: data.id,
+              totalAmount: parseFloat(data.total),
+              paymentMethod: data.payment_method,
+              date: data.created_at,
+              items: [], // We don't have items in the transaction table
+            });
+            
+            setLoading(false);
+            
+            // Auto-download PDF receipt after 1 second
+            const timer = setTimeout(() => {
+              downloadPdfReceipt({
+                id: data.id,
+                totalAmount: parseFloat(data.total),
+                paymentMethod: data.payment_method,
+                date: data.created_at,
+                items: [], 
+              });
+            }, 1000);
+            
+            return () => clearTimeout(timer);
+          }
         }
-      }, 1000);
-      
-      return () => clearTimeout(timer);
-    }
+        
+        // If not found in Supabase or it's a demo ID, try localStorage
+        const salesJson = localStorage.getItem("blank_pos_sales");
+        const sales = salesJson ? JSON.parse(salesJson) : [];
+        const foundSale = sales.find((s: any) => s.id === saleId);
+        
+        if (foundSale) {
+          setSale(foundSale);
+          
+          // Auto-download PDF receipt after 1 second
+          const timer = setTimeout(() => {
+            downloadPdfReceipt(foundSale);
+          }, 1000);
+          
+          return () => clearTimeout(timer);
+        } else {
+          toast.error("Sale not found. Showing demo receipt.");
+          // Create a dummy sale for demo purposes
+          const demoSale = {
+            id: saleId || "demo-" + Date.now().toString(),
+            totalAmount: 99.99,
+            paymentMethod: "card",
+            date: new Date().toISOString(),
+            items: [{ name: "Demo Item", quantity: 1, price: 99.99 }],
+          };
+          setSale(demoSale);
+          
+          // Auto-download PDF receipt after 1 second
+          const timer = setTimeout(() => {
+            downloadPdfReceipt(demoSale);
+          }, 1000);
+          
+          return () => clearTimeout(timer);
+        }
+      } catch (error) {
+        console.error("Error fetching sale:", error);
+        toast.error("Failed to fetch sale details");
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchSaleDetails();
   }, [saleId]);
 
   const downloadPdfReceipt = (sale: any) => {
@@ -50,7 +117,7 @@ const PaymentSuccess = () => {
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(24);
     doc.setFont("helvetica", "bold");
-    doc.text("BLANK POS SYSTEM", 105, 20, { align: "center" });
+    doc.text("PULSE POS SYSTEM", 105, 20, { align: "center" });
     
     // Receipt info
     doc.setTextColor(0, 0, 0);
@@ -68,15 +135,25 @@ const PaymentSuccess = () => {
     const tableColumn = ["Item", "Qty", "Price", "Total"];
     const tableRows: any[][] = [];
     
-    sale.items.forEach((item: any) => {
-      const itemData = [
-        item.name,
-        item.quantity,
-        formatCurrency(item.price),
-        formatCurrency(item.quantity * item.price)
-      ];
-      tableRows.push(itemData);
-    });
+    if (sale.items && sale.items.length > 0) {
+      sale.items.forEach((item: any) => {
+        const itemData = [
+          item.name,
+          item.quantity,
+          formatCurrency(item.price),
+          formatCurrency(item.quantity * item.price)
+        ];
+        tableRows.push(itemData);
+      });
+    } else {
+      // If no items, create a generic entry
+      tableRows.push([
+        "Transaction",
+        "1",
+        formatCurrency(sale.totalAmount),
+        formatCurrency(sale.totalAmount)
+      ]);
+    }
     
     if (sale.customAmount > 0) {
       tableRows.push([
@@ -110,7 +187,7 @@ const PaymentSuccess = () => {
     doc.text("Thank you for your purchase!", 105, finalY + 20, { align: "center" });
     
     // Save the PDF
-    doc.save(`BLANK-receipt-${sale.id.substring(0, 8)}.pdf`);
+    doc.save(`PULSE-receipt-${sale.id.substring(0, 8)}.pdf`);
   };
 
   const handleDownloadReceipt = () => {
@@ -124,6 +201,16 @@ const PaymentSuccess = () => {
       downloadPdfReceipt(sale);
     }
   };
+
+  if (loading) {
+    return (
+      <AppLayout>
+        <div className="container mx-auto py-8 px-4 text-center">
+          <h1 className="text-2xl font-bold mb-4">Loading receipt...</h1>
+        </div>
+      </AppLayout>
+    );
+  }
 
   if (!sale) {
     return (

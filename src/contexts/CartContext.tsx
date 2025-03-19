@@ -104,7 +104,8 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
         throw new Error("Cannot process a sale with zero amount");
       }
       
-      let saleId = "demo-" + Date.now().toString();
+      let saleId = "";
+      let saveSuccessful = false;
       
       // Try to save to Supabase if user is logged in
       if (user) {
@@ -117,24 +118,26 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
               payment_method: paymentMethod,
               user_id: user.id
             })
-            .select()
-            .single();
+            .select();
           
           if (error) {
             console.error("Supabase error:", error);
-            // Don't throw here, just log the error and continue with local storage
+            throw new Error("Failed to save transaction to database");
           }
           
-          if (data) {
-            saleId = data.id;
+          if (data && data.length > 0) {
+            saleId = data[0].id;
+            saveSuccessful = true;
           }
         } catch (dbError) {
           console.error("Database operation error:", dbError);
-          // Continue with local storage backup
+          throw dbError;
         }
+      } else {
+        throw new Error("User must be logged in to save transaction");
       }
       
-      // Always save to local storage as well (as backup or for guests)
+      // Always save to local storage as well (as backup)
       const sale = {
         id: saleId,
         items,

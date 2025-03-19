@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Trash2, Plus, Minus, CreditCard, Loader2 } from "lucide-react";
@@ -44,31 +43,30 @@ const Cart: React.FC = () => {
   };
 
   const handleProcessPayment = async () => {
-    let saleId = "demo-" + Date.now().toString();
-    
     try {
       setIsProcessing(true);
       
       // Simulate payment processing delay (5 seconds)
       await new Promise(resolve => setTimeout(resolve, 5000));
       
+      let saleId;
+      
       // Try to process the sale with card payment method
       try {
         saleId = await saveSale("card");
+        // Close dialog and reset form
+        setIsPaymentDialogOpen(false);
+        // Navigate to the success page
+        navigate(`/payment-success/${saleId}`);
       } catch (error) {
         console.error("Payment processing error:", error);
-        // We'll still navigate to success page with a demo sale ID
+        toast.error("Failed to save transaction. Please try again.");
+        setIsPaymentDialogOpen(false);
       }
-      
     } catch (error) {
       console.error("Payment processing error:", error);
     } finally {
-      // Close dialog and reset form
-      setIsPaymentDialogOpen(false);
       setIsProcessing(false);
-      
-      // Always navigate to the success page
-      navigate(`/payment-success/${saleId}`);
     }
   };
 

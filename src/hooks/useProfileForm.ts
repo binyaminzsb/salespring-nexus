@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { User } from "@/types/auth";
 import { toast } from "sonner";
@@ -33,14 +32,10 @@ export const useProfileForm = (user: User | null) => {
     try {
       setIsLoading(true);
       
-      // Prepare update data with full_name field to match database schema
-      const updateData = {
-        full_name: name.trim()
-      };
-      
+      // Update the profile in the database with the full_name field
       const { error } = await supabase
         .from('profiles')
-        .update(updateData)
+        .update({ full_name: name.trim() })
         .eq('id', user.id);
         
       if (error) throw error;

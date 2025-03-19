@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import AppLayout from "@/components/dashboard/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,20 +12,71 @@ import {
 } from "@/components/ui/table";
 import { fetchSales, filterSalesByPeriod, formatCurrency } from "@/utils/salesUtils";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Sales = () => {
+  const { user } = useAuth();
   const [sales, setSales] = useState<any[]>([]);
   const [period, setPeriod] = useState<"daily" | "weekly" | "monthly" | "yearly">("daily");
   const [chartData, setChartData] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch all sales data
-    const allSales = fetchSales();
-    setSales(allSales);
+    // Fetch both local and Supabase sales data
+    const fetchAllSales = async () => {
+      setIsLoading(true);
+      
+      // Get local sales from localStorage
+      const localSales = fetchSales();
+      
+      // Filter to only user's sales if logged in
+      const userLocalSales = user 
+        ? localSales.filter((sale: any) => sale.userId === user.id)
+        : localSales;
+      
+      // If user is logged in, also try to get Supabase transactions
+      let supaSales: any[] = [];
+      
+      if (user) {
+        try {
+          const { data, error } = await supabase
+            .from('pos_transactions')
+            .select('*')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false });
+            
+          if (!error && data) {
+            // Convert Supabase transaction format to match local sales format
+            supaSales = data.map(transaction => ({
+              id: transaction.id,
+              totalAmount: parseFloat(transaction.total),
+              paymentMethod: transaction.payment_method,
+              date: transaction.created_at,
+              userId: transaction.user_id,
+              items: []  // We don't have items in the transaction table
+            }));
+          }
+        } catch (error) {
+          console.error('Error fetching transactions:', error);
+        }
+      }
+      
+      // Combine both sources, with Supabase data taking precedence
+      const combinedSales = [...userLocalSales, ...supaSales];
+      
+      // Remove duplicates based on id
+      const uniqueSales = combinedSales.filter((sale, index, self) =>
+        index === self.findIndex((s) => s.id === sale.id)
+      );
+      
+      setSales(uniqueSales);
+      processChartData(uniqueSales);
+      setIsLoading(false);
+    };
     
-    // Process chart data
-    processChartData(allSales);
-  }, []);
+    fetchAllSales();
+  }, [user]);
 
   // Process sales data for the chart based on the selected period
   const processChartData = (salesData: any[]) => {
@@ -34,11 +84,11 @@ const Sales = () => {
     
     // Group by date
     const grouped = filtered.reduce((acc, sale) => {
-      const date = new Date(sale.date).toLocaleDateString();
+      const date = new Date(sale.date || sale.created_at).toLocaleDateString();
       if (!acc[date]) {
         acc[date] = 0;
       }
-      acc[date] += sale.totalAmount;
+      acc[date] += sale.totalAmount || parseFloat(sale.total) || 0;
       return acc;
     }, {});
     
@@ -58,7 +108,7 @@ const Sales = () => {
 
   const filteredSales = filterSalesByPeriod(sales, period);
   const totalAmount = filteredSales.reduce(
-    (total, sale) => total + sale.totalAmount,
+    (total, sale) => total + (sale.totalAmount || parseFloat(sale.total) || 0),
     0
   );
 
@@ -128,7 +178,11 @@ const Sales = () => {
             </CardHeader>
             <CardContent>
               <div className="h-80">
-                {chartData.length > 0 ? (
+                {isLoading ? (
+                  <div className="h-full flex items-center justify-center text-gray-500">
+                    Loading sales data...
+                  </div>
+                ) : chartData.length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={chartData}>
                       <CartesianGrid strokeDasharray="3 3" />
@@ -159,29 +213,29 @@ const Sales = () => {
                   <TableRow>
                     <TableHead>Transaction ID</TableHead>
                     <TableHead>Date</TableHead>
-                    <TableHead>Items</TableHead>
                     <TableHead>Payment Method</TableHead>
                     <TableHead className="text-right">Amount</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredSales
-                    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                    .sort((a, b) => {
+                      const dateA = new Date(a.date || a.created_at);
+                      const dateB = new Date(b.date || b.created_at);
+                      return dateB.getTime() - dateA.getTime();
+                    })
                     .slice(0, 10)
                     .map((sale) => (
                       <TableRow key={sale.id}>
                         <TableCell className="font-medium">
-                          {sale.id.substring(0, 8)}
+                          {sale.id.toString().substring(0, 8)}
                         </TableCell>
                         <TableCell>
-                          {new Date(sale.date).toLocaleString()}
+                          {new Date(sale.date || sale.created_at).toLocaleString()}
                         </TableCell>
-                        <TableCell>
-                          {sale.items.length + (sale.customAmount > 0 ? 1 : 0)}
-                        </TableCell>
-                        <TableCell>{sale.paymentMethod}</TableCell>
+                        <TableCell>{sale.paymentMethod || sale.payment_method}</TableCell>
                         <TableCell className="text-right">
-                          {formatCurrency(sale.totalAmount)}
+                          {formatCurrency(sale.totalAmount || parseFloat(sale.total))}
                         </TableCell>
                       </TableRow>
                     ))}
