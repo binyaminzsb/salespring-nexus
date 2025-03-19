@@ -1,7 +1,8 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchSales, filterSalesByPeriod } from "@/utils/salesUtils";
+import { fetchSales } from "@/utils/salesFetch";
+import { filterSalesByPeriod } from "@/utils/salesFilter";
 import { User } from "@/types/auth";
 
 export const useSalesData = (user: User | null) => {

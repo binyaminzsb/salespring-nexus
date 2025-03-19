@@ -4,7 +4,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { formatCurrency, fetchSales, filterSalesByPeriod } from "@/utils/salesUtils";
+import { formatCurrency } from "@/utils/salesFormat";
+import { fetchSales } from "@/utils/salesFetch";
+import { filterSalesByPeriod } from "@/utils/salesFilter";
 
 const SalesSummary: React.FC = () => {
   const { user } = useAuth();
