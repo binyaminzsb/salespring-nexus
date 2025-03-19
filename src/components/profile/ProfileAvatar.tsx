@@ -12,6 +12,13 @@ export const ProfileAvatar: React.FC<ProfileAvatarProps> = ({ user }) => {
   console.log("ProfileAvatar received user:", user);
   
   const getUserInitials = () => {
+    if (user.name && user.name.trim()) {
+      return user.name
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase();
+    }
     return user.email ? user.email[0].toUpperCase() : "U";
   };
 
@@ -26,6 +33,7 @@ export const ProfileAvatar: React.FC<ProfileAvatarProps> = ({ user }) => {
             </AvatarFallback>
           </Avatar>
         </div>
+        <p className="text-lg font-medium">{user.name || "User"}</p>
         <p className="text-gray-500">{user.email}</p>
       </CardContent>
     </Card>
