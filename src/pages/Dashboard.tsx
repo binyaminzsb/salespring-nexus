@@ -1,4 +1,3 @@
-
 import React from "react";
 import AppLayout from "@/components/dashboard/AppLayout";
 import { useNavigate } from "react-router-dom";
@@ -100,19 +99,7 @@ const Dashboard = () => {
         </div>
 
         <div className="grid grid-cols-1 gap-6 mb-10">
-          <Card className="border-0 shadow-md">
-            <CardHeader>
-              <CardTitle className="text-xl flex items-center">
-                <TrendingUp className="mr-2 h-5 w-5 text-indigo-600" />
-                Sales Overview
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-80">
-                <SalesSummary />
-              </div>
-            </CardContent>
-          </Card>
+          <SalesSummary />
         </div>
       </div>
     </AppLayout>

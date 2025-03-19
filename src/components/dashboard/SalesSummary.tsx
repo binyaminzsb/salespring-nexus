@@ -1,10 +1,11 @@
+
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { formatCurrency } from "@/utils/salesUtils";
+import { formatCurrency, fetchSales, filterSalesByPeriod } from "@/utils/salesUtils";
 
 const SalesSummary: React.FC = () => {
   const { user } = useAuth();
@@ -13,48 +14,70 @@ const SalesSummary: React.FC = () => {
   const [chartData, setChartData] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Function to fetch user-specific transactions
-  const fetchUserTransactions = async () => {
+  // Function to fetch all sales data (both Supabase and localStorage)
+  const fetchAllSalesData = async () => {
     if (!user) return;
     
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('pos_transactions')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-        
-      if (error) {
-        console.error('Error fetching transactions:', error);
-        return;
+      // Get local sales from localStorage
+      const localSales = fetchSales();
+      
+      // Filter to only user's sales if logged in
+      const userLocalSales = user 
+        ? localSales.filter((sale: any) => sale.userId === user.id)
+        : localSales;
+      
+      // If user is logged in, also try to get Supabase transactions
+      let supaSales: any[] = [];
+      
+      try {
+        const { data, error } = await supabase
+          .from('pos_transactions')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+          
+        if (!error && data) {
+          // Convert Supabase transaction format to match local sales format
+          supaSales = data.map(transaction => ({
+            id: transaction.id,
+            totalAmount: parseFloat(transaction.total.toString()),
+            paymentMethod: transaction.payment_method,
+            date: transaction.created_at,
+            userId: transaction.user_id,
+            items: []  // We don't have items in the transaction table
+          }));
+        }
+      } catch (error) {
+        console.error('Error fetching Supabase transactions:', error);
+        // Continue with local data only
       }
       
-      if (data && data.length > 0) {
-        setSalesData(data);
-        // Generate chart data
-        setChartData(groupTransactionsByDay(data));
-      } else {
-        // Try to get sales from localStorage as fallback
-        const salesJson = localStorage.getItem("blank_pos_sales");
-        if (salesJson) {
-          const localSales = JSON.parse(salesJson);
-          const userSales = localSales.filter((sale: any) => sale.userId === user.id);
-          setSalesData(userSales);
-          setChartData(groupTransactionsByDay(userSales));
-        }
-      }
+      // Combine both sources, with Supabase data taking precedence
+      const combinedSales = [...userLocalSales, ...supaSales];
+      
+      // Remove duplicates based on id
+      const uniqueSales = combinedSales.filter((sale, index, self) =>
+        index === self.findIndex((s) => s.id === sale.id)
+      );
+      
+      setSalesData(uniqueSales);
+      processChartData(uniqueSales);
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error fetching all sales data:', error);
     } finally {
       setIsLoading(false);
     }
   };
   
   // Group transactions by day
-  const groupTransactionsByDay = (transactions: any[]) => {
-    const grouped = transactions.reduce((acc, transaction) => {
-      const date = new Date(transaction.created_at || transaction.date).toLocaleDateString();
+  const processChartData = (transactions: any[]) => {
+    const filteredSales = filterSalesByPeriod(transactions, period);
+    
+    // Group by date
+    const grouped = filteredSales.reduce((acc, sale) => {
+      const date = new Date(sale.date || sale.created_at).toLocaleDateString();
       
       if (!acc[date]) {
         acc[date] = {
@@ -64,8 +87,8 @@ const SalesSummary: React.FC = () => {
         };
       }
       
-      const amount = transaction.total || transaction.totalAmount || 0;
-      acc[date].total += parseFloat(amount);
+      const amount = sale.totalAmount || parseFloat(sale.total ? sale.total.toString() : "0") || 0;
+      acc[date].total += amount;
       acc[date].count += 1;
       
       return acc;
@@ -78,39 +101,25 @@ const SalesSummary: React.FC = () => {
   const calculateTotalSales = () => {
     if (!salesData.length) return 0;
     
-    const now = new Date();
-    let periodStart = new Date();
-    
-    switch (period) {
-      case 'daily':
-        periodStart.setDate(now.getDate() - 1);
-        break;
-      case 'weekly':
-        periodStart.setDate(now.getDate() - 7);
-        break;
-      case 'monthly':
-        periodStart.setMonth(now.getMonth() - 1);
-        break;
-      case 'yearly':
-        periodStart.setFullYear(now.getFullYear() - 1);
-        break;
-    }
-    
-    const filteredSales = salesData.filter(sale => {
-      const saleDate = new Date(sale.created_at || sale.date);
-      return saleDate >= periodStart && saleDate <= now;
-    });
+    const filteredSales = filterSalesByPeriod(salesData, period);
     
     return filteredSales.reduce((sum, sale) => {
-      return sum + parseFloat(sale.total || sale.totalAmount || 0);
+      const amount = sale.totalAmount || parseFloat(sale.total ? sale.total.toString() : "0") || 0;
+      return sum + amount;
     }, 0);
   };
 
   useEffect(() => {
     if (user) {
-      fetchUserTransactions();
+      fetchAllSalesData();
     }
   }, [user]);
+  
+  useEffect(() => {
+    if (salesData.length > 0) {
+      setChartData(processChartData(salesData));
+    }
+  }, [period, salesData]);
   
   const totalSales = calculateTotalSales();
   const saleCount = salesData.length;
