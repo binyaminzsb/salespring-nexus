@@ -19,7 +19,7 @@ export const useAuthApi = () => {
         password,
         options: {
           data: {
-            full_name: name  // Changed from name to full_name to match profiles table
+            full_name: name  // Use full_name to match the profiles table
           },
           emailRedirectTo: `${window.location.origin}/dashboard`,
         }
