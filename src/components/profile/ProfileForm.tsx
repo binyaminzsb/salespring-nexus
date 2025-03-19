@@ -4,43 +4,33 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { User } from "@/types/auth";
-import { Loader2, UserRound, Mail, Shield, EyeOff, Eye } from "lucide-react";
+import { Loader2, Mail, Shield, EyeOff, Eye } from "lucide-react";
 
 interface ProfileFormProps {
   user: User;
-  name: string;
-  isEditing: boolean;
   isLoading: boolean;
   isChangingPassword: boolean;
   currentPassword: string;
   newPassword: string;
   confirmPassword: string;
-  setName: (name: string) => void;
   setCurrentPassword: (password: string) => void;
   setNewPassword: (password: string) => void;
   setConfirmPassword: (password: string) => void;
   setIsChangingPassword: (isChanging: boolean) => void;
-  handleCancelEdit: () => void;
-  handleSaveChanges: () => void;
   handleChangePassword: () => void;
 }
 
 export const ProfileForm: React.FC<ProfileFormProps> = ({
   user,
-  name,
-  isEditing,
   isLoading,
   isChangingPassword,
   currentPassword,
   newPassword,
   confirmPassword,
-  setName,
   setCurrentPassword,
   setNewPassword,
   setConfirmPassword,
   setIsChangingPassword,
-  handleCancelEdit,
-  handleSaveChanges,
   handleChangePassword
 }) => {
   const [showCurrentPassword, setShowCurrentPassword] = React.useState(false);
@@ -57,30 +47,9 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
       <CardContent>
         <div className="space-y-6">
           <div className="space-y-2">
-            <div className="flex items-center text-gray-700">
-              <UserRound className="h-4 w-4 mr-2 text-indigo-600" />
-              <span className="font-medium">Personal Details</span>
-            </div>
-            <div className="bg-gray-50 p-4 rounded-lg space-y-3">
-              <div className="grid grid-cols-3 items-center">
-                <div className="text-gray-500">Full Name</div>
-                <div className="col-span-2">
-                  {isEditing ? (
-                    <Input
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="Enter your name"
-                      className="bg-white"
-                    />
-                  ) : (
-                    <div className="font-medium">{user.name || "Not set"}</div>
-                  )}
-                </div>
-              </div>
-              <div className="grid grid-cols-3 text-sm">
-                <div className="text-gray-500">User ID</div>
-                <div className="col-span-2 font-medium">{user.id}</div>
-              </div>
+            <div className="grid grid-cols-3 text-sm">
+              <div className="text-gray-500">User ID</div>
+              <div className="col-span-2 font-medium">{user.id}</div>
             </div>
           </div>
           
@@ -94,9 +63,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
                 <div className="text-gray-500">Email</div>
                 <div className="col-span-2 font-medium flex items-center">
                   {user.email}
-                  {!isEditing && (
-                    <span className="ml-2 text-xs text-gray-400">(Cannot be changed)</span>
-                  )}
+                  <span className="ml-2 text-xs text-gray-400">(Cannot be changed)</span>
                 </div>
               </div>
             </div>
@@ -221,31 +188,6 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
           </div>
         </div>
       </CardContent>
-      {isEditing && (
-        <CardFooter className="flex justify-between flex-wrap gap-2">
-          <Button 
-            variant="outline" 
-            className="flex-1"
-            onClick={handleCancelEdit}
-          >
-            Cancel
-          </Button>
-          <Button 
-            className="button-gradient flex-1"
-            onClick={handleSaveChanges}
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              "Save Changes"
-            )}
-          </Button>
-        </CardFooter>
-      )}
     </Card>
   );
 };

@@ -11,9 +11,6 @@ import { useProfileForm } from "@/hooks/useProfileForm";
 const Profile = () => {
   const { user, signOut } = useAuth();
   const {
-    name,
-    setName,
-    isEditing,
     isLoading,
     currentPassword,
     setCurrentPassword,
@@ -23,9 +20,6 @@ const Profile = () => {
     setConfirmPassword,
     isChangingPassword,
     setIsChangingPassword,
-    handleEditProfile,
-    handleCancelEdit,
-    handleSaveChanges,
     handleChangePassword
   } = useProfileForm(user);
 
@@ -40,31 +34,22 @@ const Profile = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="md:col-span-1">
-            <ProfileAvatar 
-              user={user} 
-              isEditing={isEditing} 
-              onEditProfile={handleEditProfile} 
-            />
+            <ProfileAvatar user={user} />
             <AccountActions onSignOut={signOut} />
           </div>
 
           <div className="md:col-span-2">
             <ProfileForm
               user={user}
-              name={name}
-              isEditing={isEditing}
               isLoading={isLoading}
               isChangingPassword={isChangingPassword}
               currentPassword={currentPassword}
               newPassword={newPassword}
               confirmPassword={confirmPassword}
-              setName={setName}
               setCurrentPassword={setCurrentPassword}
               setNewPassword={setNewPassword}
               setConfirmPassword={setConfirmPassword}
               setIsChangingPassword={setIsChangingPassword}
-              handleCancelEdit={handleCancelEdit}
-              handleSaveChanges={handleSaveChanges}
               handleChangePassword={handleChangePassword}
             />
           </div>

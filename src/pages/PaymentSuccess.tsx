@@ -122,7 +122,7 @@ const PaymentSuccess = () => {
     doc.setTextColor(0, 0, 0);
     doc.setFontSize(12);
     doc.setFont("helvetica", "normal");
-    doc.text(`Receipt #${sale.id.substring(0, 8)}`, 20, 50);
+    doc.text(`Receipt #${sale.id}`, 20, 50);
     doc.text(`${formattedDate} at ${formattedTime}`, 20, 60);
     doc.text(`Payment Method: ${sale.paymentMethod}`, 20, 70);
     
@@ -186,7 +186,7 @@ const PaymentSuccess = () => {
     doc.text("Thank you for your purchase!", 105, finalY + 20, { align: "center" });
     
     // Save the PDF
-    doc.save(`PULSE-receipt-${sale.id.substring(0, 8)}.pdf`);
+    doc.save(`PULSE-receipt-${sale.id}.pdf`);
   };
 
   const handleDownloadReceipt = () => {
@@ -240,26 +240,26 @@ const PaymentSuccess = () => {
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <span className="text-gray-500">Transaction ID:</span>
-                <span className="font-mono text-blue-700">{sale.id.substring(0, 8)}</span>
+                <span className="font-mono text-blue-700">{sale?.id}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-gray-500">Date:</span>
-                <span className="text-blue-700">{new Date(sale.date).toLocaleString()}</span>
+                <span className="text-blue-700">{new Date(sale?.date).toLocaleString()}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-gray-500">Payment Method:</span>
-                <span className="text-blue-700 font-medium">{sale.paymentMethod}</span>
+                <span className="text-blue-700 font-medium">{sale?.paymentMethod}</span>
               </div>
-              {sale.cardNumber && (
+              {sale?.cardNumber && (
                 <div className="flex justify-between items-center">
                   <span className="text-gray-500">Card:</span>
-                  <span className="text-blue-700">{sale.cardNumber}</span>
+                  <span className="text-blue-700">{sale?.cardNumber}</span>
                 </div>
               )}
               <div className="flex justify-between items-center pt-4 border-t">
                 <span className="font-bold">Total Amount:</span>
                 <span className="font-bold text-xl text-green-600">
-                  {formatCurrency(sale.totalAmount)}
+                  {formatCurrency(sale?.totalAmount)}
                 </span>
               </div>
             </div>

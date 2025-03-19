@@ -1,56 +1,15 @@
+
 import { useState } from "react";
 import { User } from "@/types/auth";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
 export const useProfileForm = (user: User | null) => {
-  const [name, setName] = useState(user?.name || "");
-  const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isChangingPassword, setIsChangingPassword] = useState(false);
-
-  const handleEditProfile = () => {
-    setIsEditing(true);
-  };
-
-  const handleCancelEdit = () => {
-    setName(user?.name || "");
-    setIsEditing(false);
-  };
-
-  const handleSaveChanges = async () => {
-    if (!user) return;
-    
-    if (name.trim().length < 2) {
-      toast.error("Name must be at least 2 characters");
-      return;
-    }
-
-    try {
-      setIsLoading(true);
-      
-      // Update the profile in the database with the full_name field
-      const { error } = await supabase
-        .from('profiles')
-        .update({ full_name: name.trim() })
-        .eq('id', user.id);
-        
-      if (error) throw error;
-      
-      // After successful update, update the user object in memory
-      user.name = name.trim();
-      
-      toast.success("Profile updated successfully");
-      setIsEditing(false);
-    } catch (error: any) {
-      toast.error(error.message || "Failed to update profile");
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleChangePassword = async () => {
     if (!user) return;
@@ -103,13 +62,7 @@ export const useProfileForm = (user: User | null) => {
   };
 
   return {
-    name,
-    setName,
-    isEditing,
     isLoading,
-    handleEditProfile,
-    handleCancelEdit,
-    handleSaveChanges,
     currentPassword,
     setCurrentPassword,
     newPassword,

@@ -2,28 +2,16 @@
 import React from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { User } from "@/types/auth";
-import { Button } from "@/components/ui/button";
-import { UserRound } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
 interface ProfileAvatarProps {
   user: User;
-  isEditing: boolean;
-  onEditProfile: () => void;
 }
 
-export const ProfileAvatar: React.FC<ProfileAvatarProps> = ({ 
-  user, 
-  isEditing, 
-  onEditProfile 
-}) => {
+export const ProfileAvatar: React.FC<ProfileAvatarProps> = ({ user }) => {
   const getUserInitials = () => {
-    return user.name
-      ? user.name
-          .split(" ")
-          .map((n) => n[0])
-          .join("")
-          .toUpperCase()
+    return user.email
+      ? user.email[0].toUpperCase()
       : "U";
   };
 
@@ -38,20 +26,7 @@ export const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
             </AvatarFallback>
           </Avatar>
         </div>
-        <h2 className="text-xl font-semibold">{user.name || "User"}</h2>
         <p className="text-gray-500 mb-1">{user.email}</p>
-        <div className="mt-6">
-          {!isEditing && (
-            <Button 
-              className="w-full button-gradient" 
-              variant="default"
-              onClick={onEditProfile}
-            >
-              <UserRound className="mr-2 h-4 w-4" />
-              Edit Profile
-            </Button>
-          )}
-        </div>
       </CardContent>
     </Card>
   );

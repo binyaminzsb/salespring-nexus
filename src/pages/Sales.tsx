@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import AppLayout from "@/components/dashboard/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,61 +22,57 @@ const Sales = () => {
   const [chartData, setChartData] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    // Fetch both local and Supabase sales data
-    const fetchAllSales = async () => {
-      setIsLoading(true);
-      
-      // Get local sales from localStorage
-      const localSales = fetchSales();
-      
-      // Filter to only user's sales if logged in
-      const userLocalSales = user 
-        ? localSales.filter((sale: any) => sale.userId === user.id)
-        : localSales;
-      
-      // If user is logged in, also try to get Supabase transactions
-      let supaSales: any[] = [];
-      
-      if (user) {
-        try {
-          const { data, error } = await supabase
-            .from('pos_transactions')
-            .select('*')
-            .eq('user_id', user.id)
-            .order('created_at', { ascending: false });
-            
-          if (!error && data) {
-            // Convert Supabase transaction format to match local sales format
-            supaSales = data.map(transaction => ({
-              id: transaction.id,
-              totalAmount: parseFloat(transaction.total.toString()),
-              paymentMethod: transaction.payment_method,
-              date: transaction.created_at,
-              userId: transaction.user_id,
-              items: []  // We don't have items in the transaction table
-            }));
-          }
-        } catch (error) {
-          console.error('Error fetching transactions:', error);
-        }
-      }
-      
-      // Combine both sources, with Supabase data taking precedence
-      const combinedSales = [...userLocalSales, ...supaSales];
-      
-      // Remove duplicates based on id
-      const uniqueSales = combinedSales.filter((sale, index, self) =>
-        index === self.findIndex((s) => s.id === sale.id)
-      );
-      
-      setSales(uniqueSales);
-      processChartData(uniqueSales);
-      setIsLoading(false);
-    };
+  // Function to fetch all sales data (both Supabase and localStorage)
+  const fetchAllSales = async () => {
+    setIsLoading(true);
     
-    fetchAllSales();
-  }, [user]);
+    // Get local sales from localStorage
+    const localSales = fetchSales();
+    
+    // Filter to only user's sales if logged in
+    const userLocalSales = user 
+      ? localSales.filter((sale: any) => sale.userId === user.id)
+      : localSales;
+    
+    // If user is logged in, also try to get Supabase transactions
+    let supaSales: any[] = [];
+    
+    if (user) {
+      try {
+        const { data, error } = await supabase
+          .from('pos_transactions')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+          
+        if (!error && data) {
+          // Convert Supabase transaction format to match local sales format
+          supaSales = data.map(transaction => ({
+            id: transaction.id,
+            totalAmount: parseFloat(transaction.total.toString()),
+            paymentMethod: transaction.payment_method,
+            date: transaction.created_at,
+            userId: transaction.user_id,
+            items: []  // We don't have items in the transaction table
+          }));
+        }
+      } catch (error) {
+        console.error('Error fetching transactions:', error);
+      }
+    }
+    
+    // Combine both sources, with Supabase data taking precedence
+    const combinedSales = [...userLocalSales, ...supaSales];
+    
+    // Remove duplicates based on id
+    const uniqueSales = combinedSales.filter((sale, index, self) =>
+      index === self.findIndex((s) => s.id === sale.id)
+    );
+    
+    setSales(uniqueSales);
+    processChartData(uniqueSales);
+    setIsLoading(false);
+  };
 
   // Process sales data for the chart based on the selected period
   const processChartData = (salesData: any[]) => {
@@ -102,6 +97,11 @@ const Sales = () => {
     setChartData(chartData);
   };
 
+  useEffect(() => {
+    // Fetch both local and Supabase sales data
+    fetchAllSales();
+  }, [user]);
+  
   // Filter sales when period changes
   useEffect(() => {
     processChartData(sales);
@@ -229,7 +229,7 @@ const Sales = () => {
                     .map((sale) => (
                       <TableRow key={sale.id}>
                         <TableCell className="font-medium">
-                          {sale.id.toString().substring(0, 8)}
+                          {sale.id}
                         </TableCell>
                         <TableCell>
                           {new Date(sale.date || sale.created_at).toLocaleString()}

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -139,6 +138,7 @@ const SalesSummary: React.FC = () => {
           </Tabs>
         </div>
       </CardHeader>
+      
       <CardContent>
         <div className="grid gap-4 mb-6 md:grid-cols-2">
           <div className="flex justify-between items-center p-4 bg-slate-50 rounded-lg">
