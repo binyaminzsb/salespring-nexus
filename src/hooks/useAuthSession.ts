@@ -12,29 +12,11 @@ export const useAuthSession = () => {
       async (event, session) => {
         if (session) {
           console.log("Auth state changed, fetching profile for user:", session.user.id);
-          // Fetch the user profile from the 'profiles' table
-          const { data: profile, error } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
-
-          console.log("Profile data retrieved:", profile, "Error:", error);
-
-          if (profile) {
-            setUser({
-              id: session.user.id,
-              email: session.user.email || '',
-              name: profile.full_name || '', // Map full_name to name
-            });
-          } else {
-            // If profile not found, create a minimal user object
-            setUser({
-              id: session.user.id,
-              email: session.user.email || '',
-              name: '',
-            });
-          }
+          // Set user with minimal information
+          setUser({
+            id: session.user.id,
+            email: session.user.email || '',
+          });
         } else {
           setUser(null);
         }
@@ -47,30 +29,11 @@ export const useAuthSession = () => {
       const { data: { session } } = await supabase.auth.getSession();
       
       if (session) {
-        console.log("Initial session check, fetching profile for user:", session.user.id);
-        // Fetch the user profile from the 'profiles' table
-        const { data: profile, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
-
-        console.log("Initial profile data retrieved:", profile, "Error:", error);
-
-        if (profile) {
-          setUser({
-            id: session.user.id,
-            email: session.user.email || '',
-            name: profile.full_name || '', // Map full_name to name
-          });
-        } else {
-          // If profile not found, create a minimal user object
-          setUser({
-            id: session.user.id,
-            email: session.user.email || '',
-            name: '',
-          });
-        }
+        console.log("Initial session check for user:", session.user.id);
+        setUser({
+          id: session.user.id,
+          email: session.user.email || '',
+        });
       }
       
       setLoading(false);

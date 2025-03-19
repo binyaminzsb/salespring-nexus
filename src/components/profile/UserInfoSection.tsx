@@ -16,12 +16,6 @@ export const UserInfoSection: React.FC<UserInfoSectionProps> = ({ user }) => {
       </div>
       <div className="bg-gray-50 p-4 rounded-lg space-y-2">
         <div className="grid grid-cols-3 text-sm items-center">
-          <div className="text-gray-500">Name</div>
-          <div className="col-span-2 font-medium">
-            {user.name || "Not set"}
-          </div>
-        </div>
-        <div className="grid grid-cols-3 text-sm items-center">
           <div className="text-gray-500">Email</div>
           <div className="col-span-2 font-medium flex items-center">
             {user.email}

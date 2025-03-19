@@ -9,19 +9,16 @@ export const useAuthApi = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const signUp = async (name: string, email: string, password: string) => {
+  const signUp = async (email: string, password: string) => {
     try {
       setLoading(true);
-      console.log("Attempting to sign up user:", email, "with name:", name);
+      console.log("Attempting to sign up user:", email);
 
       // Register with Supabase with email confirmation disabled
       const { error, data } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: {
-            full_name: name  // Use full_name to match the profiles table
-          },
           emailRedirectTo: `${window.location.origin}/dashboard`,
         }
       });
@@ -43,7 +40,6 @@ export const useAuthApi = () => {
           .from('profiles')
           .upsert({
             id: data.user.id,
-            full_name: name,
             email: email
           });
 

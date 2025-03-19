@@ -12,7 +12,6 @@ import { AlertCircle, Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const formSchema = z.object({
-  name: z.string().min(2, { message: "Name must be at least 2 characters" }),
   email: z.string().email({ message: "Please enter a valid email address" }),
   password: z.string().min(6, { message: "Password must be at least 6 characters" }),
   confirmPassword: z.string(),
@@ -31,7 +30,6 @@ const RegisterForm: React.FC = () => {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
       email: "",
       password: "",
       confirmPassword: "",
@@ -42,7 +40,7 @@ const RegisterForm: React.FC = () => {
     try {
       setIsLoading(true);
       setError(null);
-      await signUp(values.name, values.email, values.password);
+      await signUp(values.email, values.password);
     } catch (err: any) {
       setError(err.message || "Failed to create account");
     } finally {
@@ -59,20 +57,6 @@ const RegisterForm: React.FC = () => {
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
-        
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Name</FormLabel>
-              <FormControl>
-                <Input placeholder="John Doe" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
         
         <FormField
           control={form.control}
