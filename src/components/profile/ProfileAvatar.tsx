@@ -22,6 +22,7 @@ export const ProfileAvatar: React.FC<ProfileAvatarProps> = ({ user }) => {
     return user.email ? user.email[0].toUpperCase() : "U";
   };
 
+  // Display either the user's name or "User" if name is empty
   const displayName = user.name && user.name.trim() !== '' ? user.name : "User";
 
   return (

@@ -21,11 +21,20 @@ export const useAuthSession = () => {
 
           console.log("Profile data retrieved:", profile, "Error:", error);
 
-          setUser({
-            id: session.user.id,
-            email: session.user.email || '',
-            name: profile?.full_name || '', // Map full_name to name
-          });
+          if (profile) {
+            setUser({
+              id: session.user.id,
+              email: session.user.email || '',
+              name: profile.full_name || '', // Map full_name to name
+            });
+          } else {
+            // If profile not found, create a minimal user object
+            setUser({
+              id: session.user.id,
+              email: session.user.email || '',
+              name: '',
+            });
+          }
         } else {
           setUser(null);
         }
@@ -48,11 +57,20 @@ export const useAuthSession = () => {
 
         console.log("Initial profile data retrieved:", profile, "Error:", error);
 
-        setUser({
-          id: session.user.id,
-          email: session.user.email || '',
-          name: profile?.full_name || '', // Map full_name to name
-        });
+        if (profile) {
+          setUser({
+            id: session.user.id,
+            email: session.user.email || '',
+            name: profile.full_name || '', // Map full_name to name
+          });
+        } else {
+          // If profile not found, create a minimal user object
+          setUser({
+            id: session.user.id,
+            email: session.user.email || '',
+            name: '',
+          });
+        }
       }
       
       setLoading(false);
