@@ -11,12 +11,15 @@ export const useAuthSession = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (session) {
+          console.log("Auth state changed, fetching profile for user:", session.user.id);
           // Fetch the user profile from the 'profiles' table
-          const { data: profile } = await supabase
+          const { data: profile, error } = await supabase
             .from('profiles')
             .select('*')
             .eq('id', session.user.id)
             .single();
+
+          console.log("Profile data retrieved:", profile, "Error:", error);
 
           setUser({
             id: session.user.id,
@@ -35,12 +38,15 @@ export const useAuthSession = () => {
       const { data: { session } } = await supabase.auth.getSession();
       
       if (session) {
+        console.log("Initial session check, fetching profile for user:", session.user.id);
         // Fetch the user profile from the 'profiles' table
-        const { data: profile } = await supabase
+        const { data: profile, error } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', session.user.id)
           .single();
+
+        console.log("Initial profile data retrieved:", profile, "Error:", error);
 
         setUser({
           id: session.user.id,

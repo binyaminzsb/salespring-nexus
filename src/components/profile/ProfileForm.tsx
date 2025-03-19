@@ -37,6 +37,8 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
   const [showNewPassword, setShowNewPassword] = React.useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
 
+  console.log("ProfileForm received user:", user);
+
   return (
     <Card className="border-0 shadow-md overflow-hidden">
       <div className="h-1.5 bg-gradient-to-r from-purple-500 to-indigo-500"></div>
@@ -59,6 +61,12 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
               <span className="font-medium">Contact Information</span>
             </div>
             <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+              <div className="grid grid-cols-3 text-sm items-center">
+                <div className="text-gray-500">Name</div>
+                <div className="col-span-2 font-medium">
+                  {user.name || "Not set"}
+                </div>
+              </div>
               <div className="grid grid-cols-3 text-sm items-center">
                 <div className="text-gray-500">Email</div>
                 <div className="col-span-2 font-medium flex items-center">

@@ -31,6 +31,7 @@ export const useProfileForm = (user: User | null) => {
 
     try {
       setIsLoading(true);
+      console.log("Attempting to change password for:", user.email);
 
       // First verify the current password by attempting to sign in
       const { error: signInError } = await supabase.auth.signInWithPassword({
@@ -39,6 +40,7 @@ export const useProfileForm = (user: User | null) => {
       });
 
       if (signInError) {
+        console.error("Current password verification failed:", signInError);
         throw new Error("Current password is incorrect");
       }
 
@@ -47,7 +49,10 @@ export const useProfileForm = (user: User | null) => {
         password: newPassword
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Password update failed:", error);
+        throw error;
+      }
 
       toast.success("Password updated successfully");
       setIsChangingPassword(false);

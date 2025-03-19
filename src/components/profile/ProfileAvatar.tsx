@@ -9,6 +9,8 @@ interface ProfileAvatarProps {
 }
 
 export const ProfileAvatar: React.FC<ProfileAvatarProps> = ({ user }) => {
+  console.log("ProfileAvatar received user:", user);
+  
   const getUserInitials = () => {
     if (user.name) {
       return user.name
@@ -31,8 +33,8 @@ export const ProfileAvatar: React.FC<ProfileAvatarProps> = ({ user }) => {
             </AvatarFallback>
           </Avatar>
         </div>
-        <p className="font-medium text-gray-800">{user.name || "User"}</p>
-        <p className="text-gray-500 mb-1">{user.email}</p>
+        <p className="font-medium text-gray-800 mb-1">{user.name || "User"}</p>
+        <p className="text-gray-500">{user.email}</p>
       </CardContent>
     </Card>
   );
