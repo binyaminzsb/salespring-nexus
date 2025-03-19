@@ -26,11 +26,9 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   }
 
   const getUserInitials = () => {
-    return user.name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase();
+    // Use email instead of name for initials
+    const email = user.email || '';
+    return email.substring(0, 2).toUpperCase();
   };
 
   return (
