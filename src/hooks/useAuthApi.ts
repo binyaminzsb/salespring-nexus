@@ -19,7 +19,12 @@ export const useAuthApi = () => {
         email,
         password,
         options: {
+          // Disable email verification by automatically confirming emails
           emailRedirectTo: `${window.location.origin}/dashboard`,
+          // Set data.user.email_confirmed_at in the metadata
+          data: {
+            email_confirmed: true
+          }
         }
       });
 
