@@ -29,7 +29,7 @@ export const useSalesData = (user: User | null) => {
     if (user) {
       try {
         const { data, error } = await supabase
-          .from('pos_transactions')
+          .from('sales')
           .select('*')
           .eq('user_id', user.id)
           .order('created_at', { ascending: false });

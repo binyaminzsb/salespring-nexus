@@ -24,7 +24,7 @@ const PaymentSuccess = () => {
         // First try to get from Supabase
         if (saleId && saleId.length > 10) { // Real Supabase UUID is longer than demo IDs
           const { data, error } = await supabase
-            .from('pos_transactions')
+            .from('sales')
             .select('*')
             .eq('id', saleId)
             .single();

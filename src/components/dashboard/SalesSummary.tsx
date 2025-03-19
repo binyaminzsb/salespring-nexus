@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -34,7 +35,7 @@ const SalesSummary: React.FC = () => {
       
       try {
         const { data, error } = await supabase
-          .from('pos_transactions')
+          .from('sales')
           .select('*')
           .eq('user_id', user.id)
           .order('created_at', { ascending: false });

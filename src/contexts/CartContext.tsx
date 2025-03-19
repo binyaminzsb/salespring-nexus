@@ -113,7 +113,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
           console.log("Attempting to save transaction to Supabase...");
           // Create transaction in Supabase
           const { data, error } = await supabase
-            .from('pos_transactions')
+            .from('sales')
             .insert({
               total: finalAmount,
               payment_method: paymentMethod,
