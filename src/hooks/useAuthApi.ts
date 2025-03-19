@@ -12,6 +12,7 @@ export const useAuthApi = () => {
   const signUp = async (name: string, email: string, password: string) => {
     try {
       setLoading(true);
+      console.log("Attempting to sign up user:", email, "with name:", name);
 
       // Register with Supabase with email confirmation disabled
       const { error, data } = await supabase.auth.signUp({
@@ -29,6 +30,7 @@ export const useAuthApi = () => {
       
       // Automatically sign in the user after successful registration
       if (data.user) {
+        console.log("User registered successfully, now signing in");
         const { error: signInError } = await supabase.auth.signInWithPassword({
           email,
           password
@@ -45,7 +47,10 @@ export const useAuthApi = () => {
             email: email
           });
 
-        if (profileError) throw profileError;
+        if (profileError) {
+          console.error("Error upserting profile:", profileError);
+          throw profileError;
+        }
         
         toast.success("Account created successfully!");
         navigate("/dashboard");

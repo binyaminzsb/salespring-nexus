@@ -12,7 +12,7 @@ export const ProfileAvatar: React.FC<ProfileAvatarProps> = ({ user }) => {
   console.log("ProfileAvatar received user:", user);
   
   const getUserInitials = () => {
-    if (user.name) {
+    if (user.name && user.name.trim() !== '') {
       return user.name
         .split(" ")
         .map((n) => n[0])
@@ -21,6 +21,8 @@ export const ProfileAvatar: React.FC<ProfileAvatarProps> = ({ user }) => {
     }
     return user.email ? user.email[0].toUpperCase() : "U";
   };
+
+  const displayName = user.name && user.name.trim() !== '' ? user.name : "User";
 
   return (
     <Card className="border-0 shadow-md text-center overflow-hidden">
@@ -33,7 +35,7 @@ export const ProfileAvatar: React.FC<ProfileAvatarProps> = ({ user }) => {
             </AvatarFallback>
           </Avatar>
         </div>
-        <p className="font-medium text-gray-800 mb-1">{user.name || "User"}</p>
+        <p className="font-medium text-gray-800 mb-1">{displayName}</p>
         <p className="text-gray-500">{user.email}</p>
       </CardContent>
     </Card>
