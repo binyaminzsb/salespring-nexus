@@ -1,11 +1,11 @@
 
 import React from "react";
-import { CartItem as CartItemType } from "@/contexts/CartContext";
+import { CartItem } from "@/types/cart";
 import CartItem from "./CartItem";
 import { formatCurrency } from "@/utils/salesUtils";
 
 interface CartItemListProps {
-  items: CartItemType[];
+  items: CartItem[];
   customAmount: string;
   onQuantityChange: (id: string, change: number) => void;
   onRemoveItem: (id: string) => void;

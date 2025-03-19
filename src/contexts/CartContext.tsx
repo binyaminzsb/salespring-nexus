@@ -1,34 +1,12 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-
-// Define types for our items and context
-export interface CartItem {
-  id: string;
-  name: string;
-  price: number;
-  quantity: number;
-}
-
-interface CartContextType {
-  items: CartItem[];
-  customAmount: string;
-  totalAmount: number;
-  addItem: (item: Omit<CartItem, "id" | "quantity">) => void;
-  addCustomAmount: (amount: string) => void;
-  updateItemQuantity: (id: string, quantity: number) => void;
-  removeItem: (id: string) => void;
-  clearCart: () => void;
-  saveSale: (paymentMethod: string) => Promise<string>;
-}
+import { CartItem, CartContextType } from "@/types/cart";
+import { calculateTotalAmount, saveSaleToSupabase, saveSaleToLocalStorage } from "@/utils/cartUtils";
 
 // Create the context
 const CartContext = createContext<CartContextType | undefined>(undefined);
-
-// Mock sales database (will be replaced with Supabase later)
-const SALES_KEY = "blank_pos_sales";
 
 // Cart Provider component
 export const CartProvider = ({ children }: { children: React.ReactNode }) => {
@@ -39,12 +17,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Calculate total amount whenever items or customAmount changes
   useEffect(() => {
-    const itemsTotal = items.reduce(
-      (total, item) => total + item.price * item.quantity,
-      0
-    );
-    const customTotal = customAmount && !isNaN(parseFloat(customAmount)) ? parseFloat(customAmount) : 0;
-    setTotalAmount(itemsTotal + customTotal);
+    setTotalAmount(calculateTotalAmount(items, customAmount));
   }, [items, customAmount]);
 
   // Add item to cart
@@ -109,62 +82,27 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
       
       // Try to save to Supabase if user is logged in
       if (user) {
-        try {
-          console.log("Attempting to save transaction to Supabase...");
-          // Create transaction in Supabase
-          const { data, error } = await supabase
-            .from('sales')
-            .insert({
-              total: finalAmount,
-              payment_method: paymentMethod,
-              user_id: user.id
-            })
-            .select();
-          
-          if (error) {
-            console.error("Supabase error:", error);
-            
-            // For the recursion error, we'll use local storage fallback but not throw
-            if (error.message.includes("infinite recursion") || error.message.includes("admin_users")) {
-              console.log("Using local storage fallback due to Supabase policy issue");
-            } else {
-              throw new Error(`Database error: ${error.message}`);
-            }
-          } else if (data && data.length > 0) {
-            saleId = data[0].id;
-            saveSuccessful = true;
-            console.log("Transaction saved to Supabase with ID:", saleId);
-          }
-        } catch (dbError: any) {
-          console.error("Database operation error:", dbError);
-          // Don't throw here, fall back to local storage
+        const result = await saveSaleToSupabase(user.id, finalAmount, paymentMethod);
+        if (result.success) {
+          saleId = result.saleId!;
+          saveSuccessful = true;
         }
       }
       
       // If Supabase save failed or user not logged in, use local storage
       if (!saveSuccessful) {
-        console.log("Falling back to local storage for sale");
         saleId = `local-${Date.now()}`;
       }
       
       // Always save to local storage as well (as backup)
-      const sale = {
-        id: saleId,
+      saveSaleToLocalStorage(
+        saleId,
         items,
-        customAmount: customAmount && !isNaN(parseFloat(customAmount)) ? parseFloat(customAmount) : 0,
-        totalAmount: finalAmount,
+        customAmount,
+        finalAmount,
         paymentMethod,
-        date: new Date().toISOString(),
-        userId: user ? user.id : 'guest'
-      };
-      
-      // Get existing sales from localStorage
-      const existingSalesJson = localStorage.getItem(SALES_KEY);
-      const existingSales = existingSalesJson ? JSON.parse(existingSalesJson) : [];
-      
-      // Add new sale
-      const updatedSales = [...existingSales, sale];
-      localStorage.setItem(SALES_KEY, JSON.stringify(updatedSales));
+        user ? user.id : 'guest'
+      );
       
       // Clear cart after successful sale
       clearCart();
@@ -201,3 +139,6 @@ export const useCart = () => {
   }
   return context;
 };
+
+// Re-export the CartItem type for convenience
+export type { CartItem } from "@/types/cart";
