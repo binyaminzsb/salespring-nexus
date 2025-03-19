@@ -42,13 +42,13 @@ export const useProfileForm = (user: User | null) => {
       }
 
       // Use the updatePassword function from AuthContext
-      const success = await updatePassword(currentPassword, newPassword);
+      await updatePassword(currentPassword, newPassword);
       
-      if (success) {
-        // Handle success
-        setIsChangingPassword(false);
-        resetPasswordFields();
-      }
+      // Success, reset the form
+      setIsChangingPassword(false);
+      resetPasswordFields();
+      
+      // Show success popup (handled by the updatePassword function which already displays a toast)
     } catch (error: any) {
       toast.error(error.message || "Failed to update password");
       console.error("Password change error:", error);

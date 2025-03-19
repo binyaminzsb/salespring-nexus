@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -143,11 +144,45 @@ export const useAuthApi = () => {
     }
   };
 
+  const updateProfile = async (data: Partial<User>) => {
+    try {
+      setLoading(true);
+      
+      // Get the current user
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        throw new Error("User not found");
+      }
+      
+      // Update the profile in the profiles table
+      const { error } = await supabase
+        .from('profiles')
+        .update({ 
+          ...data
+        })
+        .eq('id', user.id);
+      
+      if (error) {
+        throw error;
+      }
+      
+      toast.success("Profile updated successfully");
+      return true;
+    } catch (error: any) {
+      console.error("Profile update error:", error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     loading,
     signUp,
     signIn,
     signOut,
-    updatePassword
+    updatePassword,
+    updateProfile
   };
 };

@@ -1,7 +1,8 @@
 
 import React from "react";
-import { Mail } from "lucide-react";
+import { Mail, User as UserIcon } from "lucide-react";
 import { User } from "@/types/auth";
+import { UserProfileForm } from "./UserProfileForm";
 
 interface UserInfoSectionProps {
   user: User;
@@ -9,8 +10,14 @@ interface UserInfoSectionProps {
 
 export const UserInfoSection: React.FC<UserInfoSectionProps> = ({ user }) => {
   return (
-    <div className="space-y-2">
+    <div className="space-y-4">
       <div className="flex items-center text-gray-700">
+        <UserIcon className="h-4 w-4 mr-2 text-purple-600" />
+        <span className="font-medium">Personal Information</span>
+      </div>
+      <UserProfileForm user={user} />
+
+      <div className="flex items-center text-gray-700 mt-4">
         <Mail className="h-4 w-4 mr-2 text-purple-600" />
         <span className="font-medium">Contact Information</span>
       </div>
