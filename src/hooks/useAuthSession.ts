@@ -12,7 +12,7 @@ export const useAuthSession = () => {
     
     const { data, error } = await supabase
       .from('profiles')
-      .select('email, name')
+      .select('email')
       .eq('id', userId)
       .single();
     
@@ -37,8 +37,7 @@ export const useAuthSession = () => {
           // Set user with information from auth
           setUser({
             id: session.user.id,
-            email: session.user.email || '',
-            name: profile?.name || ''
+            email: session.user.email || ''
           });
         } else {
           setUser(null);
@@ -59,8 +58,7 @@ export const useAuthSession = () => {
         
         setUser({
           id: session.user.id,
-          email: session.user.email || '',
-          name: profile?.name || ''
+          email: session.user.email || ''
         });
       }
       
