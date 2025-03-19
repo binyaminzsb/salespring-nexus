@@ -30,22 +30,26 @@ export const useAuthApi = () => {
 
       if (error) throw error;
       
-      // Automatically sign in the user after successful registration
+      // If user registration was successful
       if (data.user) {
-        console.log("User registered successfully, now signing in");
+        console.log("User registered successfully:", data.user.id);
+        
+        // Sign in the user after successful registration
         const { error: signInError } = await supabase.auth.signInWithPassword({
           email,
           password
         });
         
         if (signInError) throw signInError;
-
-        // Insert into profiles table directly to ensure data is saved
+        
+        // Create or update profile record with proper RLS handling
         const { error: profileError } = await supabase
           .from('profiles')
-          .upsert({
+          .upsert({ 
             id: data.user.id,
-            email: email
+            email: email 
+          }, {
+            onConflict: 'id'
           });
 
         if (profileError) {
