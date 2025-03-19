@@ -88,10 +88,19 @@ export const useProfileForm = (user: User | null) => {
     try {
       setIsLoading(true);
 
-      // Update the password directly
+      // First verify the current password by attempting to sign in
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: currentPassword
+      });
+
+      if (signInError) {
+        throw new Error("Current password is incorrect");
+      }
+
+      // Then update the password - without passing the currentPassword property
       const { error } = await supabase.auth.updateUser({
-        password: newPassword,
-        currentPassword: currentPassword
+        password: newPassword
       });
 
       if (error) throw error;
