@@ -6,8 +6,13 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const useProfileForm = (user: User | null) => {
   const [name, setName] = useState(user?.name || "");
+  const [username, setUsername] = useState(user?.username || "");
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
 
   const handleEditProfile = () => {
     setIsEditing(true);
@@ -15,6 +20,7 @@ export const useProfileForm = (user: User | null) => {
 
   const handleCancelEdit = () => {
     setName(user?.name || "");
+    setUsername(user?.username || "");
     setIsEditing(false);
   };
 
@@ -29,9 +35,19 @@ export const useProfileForm = (user: User | null) => {
     try {
       setIsLoading(true);
       
+      // Prepare update data
+      const updateData: { full_name: string; username?: string } = {
+        full_name: name.trim()
+      };
+      
+      // Only update username if it's not set yet and a new one is provided
+      if (!user.username && username.trim()) {
+        updateData.username = username.trim();
+      }
+      
       const { error } = await supabase
         .from('profiles')
-        .update({ full_name: name.trim() })
+        .update(updateData)
         .eq('id', user.id);
         
       if (error) throw error;
@@ -45,13 +61,76 @@ export const useProfileForm = (user: User | null) => {
     }
   };
 
+  const handleChangePassword = async () => {
+    if (!user) return;
+
+    if (newPassword.length < 6) {
+      toast.error("New password must be at least 6 characters");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      toast.error("New passwords don't match");
+      return;
+    }
+
+    if (!currentPassword) {
+      toast.error("Current password is required");
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+
+      // First verify the current password
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: currentPassword
+      });
+
+      if (signInError) {
+        toast.error("Current password is incorrect");
+        setIsLoading(false);
+        return;
+      }
+
+      // Update the password
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (error) throw error;
+
+      toast.success("Password updated successfully");
+      setIsChangingPassword(false);
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to update password");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return {
     name,
     setName,
+    username,
+    setUsername,
     isEditing,
     isLoading,
     handleEditProfile,
     handleCancelEdit,
-    handleSaveChanges
+    handleSaveChanges,
+    currentPassword,
+    setCurrentPassword,
+    newPassword,
+    setNewPassword,
+    confirmPassword,
+    setConfirmPassword,
+    isChangingPassword,
+    setIsChangingPassword,
+    handleChangePassword
   };
 };

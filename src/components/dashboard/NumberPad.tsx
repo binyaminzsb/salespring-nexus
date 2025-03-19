@@ -13,24 +13,21 @@ const NumberPad: React.FC = () => {
     if (isFirstInput) {
       setDisplayValue(num.toString());
       setIsFirstInput(false);
+      // Update cart with the new value
+      addCustomAmount(num.toString());
     } else {
-      setDisplayValue((prev) => {
-        // Remove decimal and currency formatting
-        const currentValue = prev.replace(/[^0-9.]/g, "");
-        // Remove trailing zeros and decimal if needed
-        const numericValue = parseFloat(currentValue + num);
-        // Format as 2 decimal places
-        return numericValue.toFixed(2);
-      });
+      // Append digit to current value
+      const newValue = displayValue + num.toString();
+      setDisplayValue(newValue);
+      // Update cart with the new value
+      addCustomAmount(newValue);
     }
-
-    // Update cart with the new value
-    addCustomAmount(displayValue === "0.00" ? num.toString() : displayValue + num);
   };
 
   const handleDecimalClick = () => {
     if (!displayValue.includes(".")) {
       setDisplayValue((prev) => prev + ".");
+      addCustomAmount(displayValue + ".");
     }
   };
 
@@ -42,20 +39,29 @@ const NumberPad: React.FC = () => {
 
   const handleBackspace = () => {
     setDisplayValue((prev) => {
-      // Remove formatting
-      const currentValue = prev.replace(/[^0-9.]/g, "");
-      if (currentValue.length <= 1) {
+      if (prev.length <= 1 || (prev.length === 4 && prev.includes("."))) {
         setIsFirstInput(true);
+        addCustomAmount("");
         return "0.00";
       }
-      const newValue = currentValue.slice(0, -1);
-      return newValue.includes(".") ? newValue : parseFloat(newValue).toFixed(2);
+      
+      const newValue = prev.slice(0, -1);
+      addCustomAmount(newValue);
+      return newValue;
     });
   };
 
   // Format for display
   const formattedDisplay = () => {
     try {
+      if (displayValue === "" || displayValue === "0.00") {
+        return "$0.00";
+      }
+      
+      if (displayValue.endsWith(".")) {
+        return `$${displayValue}`;
+      }
+      
       return formatCurrency(parseFloat(displayValue));
     } catch (error) {
       return "$0.00";

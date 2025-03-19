@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import { Trash2, Plus, Minus, CreditCard, Loader2 } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/utils/salesUtils";
 import {
@@ -23,7 +22,6 @@ const Cart: React.FC = () => {
   
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | null>(null);
 
   const handleQuantityChange = (id: string, change: number) => {
     const item = items.find(item => item.id === id);
@@ -45,28 +43,18 @@ const Cart: React.FC = () => {
     setIsPaymentDialogOpen(true);
   };
 
-  const handleSelectPaymentMethod = (method: string) => {
-    setSelectedPaymentMethod(method);
-  };
-
   const handleProcessPayment = async () => {
     try {
-      if (!selectedPaymentMethod) {
-        toast.error("Please select a payment method");
-        return;
-      }
-
       setIsProcessing(true);
       
-      // Simulate payment processing delay (5 seconds)
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      // Simulate payment processing delay (2 seconds)
+      await new Promise(resolve => setTimeout(resolve, 2000));
       
-      // Process the sale
-      const saleId = await saveSale(selectedPaymentMethod);
+      // Process the sale with card payment method
+      const saleId = await saveSale("card");
       
       // Close dialog and reset form
       setIsPaymentDialogOpen(false);
-      setSelectedPaymentMethod(null);
       
       // Navigate to the success page
       navigate(`/payment-success/${saleId}`);
@@ -76,14 +64,6 @@ const Cart: React.FC = () => {
       setIsProcessing(false);
     }
   };
-
-  const paymentMethods = [
-    { id: "visa", name: "Visa", icon: "/payment-icons/visa.png" },
-    { id: "mastercard", name: "Mastercard", icon: "/payment-icons/mastercard.png" },
-    { id: "amex", name: "American Express", icon: "/payment-icons/amex.png" },
-    { id: "applepay", name: "Apple Pay", icon: "/payment-icons/applepay.png" },
-    { id: "googlepay", name: "Google Pay", icon: "/payment-icons/googlepay.png" },
-  ];
 
   return (
     <>
@@ -176,39 +156,30 @@ const Cart: React.FC = () => {
       <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
         <DialogContent className="sm:max-w-md bg-gradient-to-br from-white to-blue-50">
           <DialogHeader>
-            <DialogTitle className="text-center text-blue-800 text-xl">Payment Method</DialogTitle>
+            <DialogTitle className="text-center text-blue-800 text-xl">Payment</DialogTitle>
             <DialogDescription className="text-center">
-              Select a payment method to complete your purchase.
+              Tap your card or phone to complete your purchase.
             </DialogDescription>
           </DialogHeader>
           
           <div className="py-4">
-            <div className="grid grid-cols-3 gap-3">
-              {paymentMethods.map((method) => (
-                <div 
-                  key={method.id}
-                  className={`p-3 border rounded-lg cursor-pointer transition-all ${
-                    selectedPaymentMethod === method.id 
-                      ? 'border-blue-500 bg-blue-50 shadow-md' 
-                      : 'border-gray-200 hover:border-blue-300'
-                  }`}
-                  onClick={() => handleSelectPaymentMethod(method.id)}
-                >
-                  <div className="flex flex-col items-center">
-                    <div className="h-12 w-16 flex items-center justify-center mb-2">
-                      <img 
-                        src={method.icon} 
-                        alt={method.name} 
-                        className="max-h-full max-w-full object-contain"
-                      />
-                    </div>
-                    <span className="text-xs text-center">{method.name}</span>
-                  </div>
-                </div>
-              ))}
+            <div className="flex justify-center items-center h-24">
+              <img 
+                src="/payment-icons/card-tap.svg" 
+                alt="Tap card" 
+                className="h-full object-contain"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = "/payment-icons/visa.png"; // Fallback image
+                }}
+              />
             </div>
             
-            <div className="mt-6 text-center text-sm text-gray-500">
+            <div className="mt-6 text-center text-xl font-bold">
+              {formatCurrency(totalAmount)}
+            </div>
+            
+            <div className="mt-4 text-center text-sm text-gray-500">
               Tap your card or phone when prompted by the terminal
             </div>
           </div>
@@ -224,7 +195,7 @@ const Cart: React.FC = () => {
             </Button>
             <Button 
               onClick={handleProcessPayment} 
-              disabled={isProcessing || !selectedPaymentMethod}
+              disabled={isProcessing}
               className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
             >
               {isProcessing ? (
@@ -233,7 +204,7 @@ const Cart: React.FC = () => {
                   Processing...
                 </>
               ) : (
-                `Pay ${formatCurrency(totalAmount)}`
+                `Process Payment`
               )}
             </Button>
           </DialogFooter>

@@ -1,6 +1,8 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Define types for our items and context
 export interface CartItem {
@@ -30,6 +32,7 @@ const SALES_KEY = "blank_pos_sales";
 
 // Cart Provider component
 export const CartProvider = ({ children }: { children: React.ReactNode }) => {
+  const { user } = useAuth();
   const [items, setItems] = useState<CartItem[]>([]);
   const [customAmount, setCustomAmount] = useState<string>("");
   const [totalAmount, setTotalAmount] = useState<number>(0);
@@ -85,14 +88,35 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   // Save sale and generate receipt
   const saveSale = async (paymentMethod: string) => {
     try {
-      // Create sale object
+      if (!user) {
+        throw new Error("User must be logged in to save sale");
+      }
+      
+      // Calculate final amount
+      const finalAmount = totalAmount;
+      
+      // Create transaction in Supabase
+      const { data, error } = await supabase
+        .from('pos_transactions')
+        .insert({
+          total: finalAmount,
+          payment_method: paymentMethod,
+          user_id: user.id
+        })
+        .select()
+        .single();
+      
+      if (error) throw error;
+      
+      // Save to local storage as well for backup
       const sale = {
-        id: Date.now().toString(),
+        id: data.id,
         items,
         customAmount: customAmount ? parseFloat(customAmount) : 0,
-        totalAmount,
+        totalAmount: finalAmount,
         paymentMethod,
         date: new Date().toISOString(),
+        userId: user.id
       };
       
       // Get existing sales from localStorage
@@ -106,9 +130,10 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
       // Clear cart after successful sale
       clearCart();
       
-      return sale.id;
-    } catch (error) {
-      toast.error("Failed to process sale");
+      return data.id;
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.message || "Failed to process sale");
       throw error;
     }
   };

@@ -2,24 +2,106 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { fetchSales, calculateTotalSales, formatCurrency, groupSalesByDay } from "@/utils/salesUtils";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { formatCurrency } from "@/utils/salesUtils";
 
 const SalesSummary: React.FC = () => {
+  const { user } = useAuth();
   const [salesData, setSalesData] = useState<any[]>([]);
   const [period, setPeriod] = useState<"daily" | "weekly" | "monthly" | "yearly">("daily");
   const [chartData, setChartData] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Function to fetch user-specific transactions
+  const fetchUserTransactions = async () => {
+    if (!user) return;
+    
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('pos_transactions')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+        
+      if (error) {
+        console.error('Error fetching transactions:', error);
+        return;
+      }
+      
+      setSalesData(data || []);
+      
+      // Generate chart data
+      if (data) {
+        setChartData(groupTransactionsByDay(data));
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  // Group transactions by day
+  const groupTransactionsByDay = (transactions: any[]) => {
+    const grouped = transactions.reduce((acc, transaction) => {
+      const date = new Date(transaction.created_at).toLocaleDateString();
+      
+      if (!acc[date]) {
+        acc[date] = {
+          date,
+          total: 0,
+          count: 0
+        };
+      }
+      
+      acc[date].total += parseFloat(transaction.total);
+      acc[date].count += 1;
+      
+      return acc;
+    }, {});
+    
+    return Object.values(grouped);
+  };
+  
+  // Calculate total sales based on period
+  const calculateTotalSales = () => {
+    if (!salesData.length) return 0;
+    
+    const now = new Date();
+    let periodStart = new Date();
+    
+    switch (period) {
+      case 'daily':
+        periodStart.setDate(now.getDate() - 1);
+        break;
+      case 'weekly':
+        periodStart.setDate(now.getDate() - 7);
+        break;
+      case 'monthly':
+        periodStart.setMonth(now.getMonth() - 1);
+        break;
+      case 'yearly':
+        periodStart.setFullYear(now.getFullYear() - 1);
+        break;
+    }
+    
+    const filteredSales = salesData.filter(sale => 
+      new Date(sale.created_at) >= periodStart && new Date(sale.created_at) <= now
+    );
+    
+    return filteredSales.reduce((sum, sale) => sum + parseFloat(sale.total), 0);
+  };
 
   useEffect(() => {
-    // Fetch sales data from localStorage
-    const sales = fetchSales();
-    setSalesData(sales);
-    
-    // Generate chart data
-    setChartData(groupSalesByDay(sales));
-  }, []);
-
-  const totalSales = calculateTotalSales(salesData, period);
+    if (user) {
+      fetchUserTransactions();
+    }
+  }, [user]);
+  
+  const totalSales = calculateTotalSales();
   const saleCount = salesData.length;
 
   return (
@@ -50,7 +132,11 @@ const SalesSummary: React.FC = () => {
         </div>
         
         <div className="h-64">
-          {chartData.length > 0 ? (
+          {isLoading ? (
+            <div className="h-full flex items-center justify-center text-gray-500">
+              Loading sales data...
+            </div>
+          ) : chartData.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" />
