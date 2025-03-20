@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext } from "react";
 import { AuthContextType } from "@/types/auth";
 import { useAuthSession } from "@/hooks/useAuthSession";
@@ -7,7 +8,7 @@ export const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
   signUp: async () => {},
-  signIn: async () => {},
+  signIn: async () => null, // Updated to return null as default
   signOut: () => {},
   updatePassword: async () => false,
   updateProfile: async () => false
