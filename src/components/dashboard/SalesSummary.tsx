@@ -65,7 +65,7 @@ const SalesSummary: React.FC = () => {
       );
       
       setSalesData(uniqueSales);
-      processChartData(uniqueSales);
+      processChartData(uniqueSales, period);
     } catch (error) {
       console.error('Error fetching all sales data:', error);
     } finally {
@@ -74,8 +74,8 @@ const SalesSummary: React.FC = () => {
   };
   
   // Group transactions by day
-  const processChartData = (transactions: any[]) => {
-    const filteredSales = filterSalesByPeriod(transactions, period);
+  const processChartData = (transactions: any[], currentPeriod: "daily" | "weekly" | "monthly" | "yearly") => {
+    const filteredSales = filterSalesByPeriod(transactions, currentPeriod);
     
     // Group by date
     const grouped = filteredSales.reduce((acc, sale) => {
@@ -96,7 +96,7 @@ const SalesSummary: React.FC = () => {
       return acc;
     }, {});
     
-    return Object.values(grouped);
+    setChartData(Object.values(grouped));
   };
   
   // Calculate total sales based on period
@@ -119,12 +119,16 @@ const SalesSummary: React.FC = () => {
   
   useEffect(() => {
     if (salesData.length > 0) {
-      setChartData(processChartData(salesData));
+      processChartData(salesData, period);
     }
   }, [period, salesData]);
   
   const totalSales = calculateTotalSales();
-  const saleCount = salesData.length;
+  
+  // Count transactions for the selected period
+  const transactionCount = salesData.length > 0 
+    ? filterSalesByPeriod(salesData, period).length 
+    : 0;
 
   return (
     <Card className="h-full">
@@ -145,12 +149,16 @@ const SalesSummary: React.FC = () => {
       <CardContent>
         <div className="grid gap-4 mb-6 md:grid-cols-2">
           <div className="flex justify-between items-center p-4 bg-slate-50 rounded-lg">
-            <div className="text-sm font-medium text-gray-500">Total Sales</div>
+            <div className="text-sm font-medium text-gray-500">
+              {period.charAt(0).toUpperCase() + period.slice(1)} Sales
+            </div>
             <div className="text-2xl font-bold">{formatCurrency(totalSales)}</div>
           </div>
           <div className="flex justify-between items-center p-4 bg-slate-50 rounded-lg">
-            <div className="text-sm font-medium text-gray-500">Transactions</div>
-            <div className="text-2xl font-bold">{saleCount}</div>
+            <div className="text-sm font-medium text-gray-500">
+              {period.charAt(0).toUpperCase() + period.slice(1)} Transactions
+            </div>
+            <div className="text-2xl font-bold">{transactionCount}</div>
           </div>
         </div>
         
@@ -171,7 +179,7 @@ const SalesSummary: React.FC = () => {
             </ResponsiveContainer>
           ) : (
             <div className="h-full flex items-center justify-center text-gray-500">
-              No sales data available
+              No sales data available for {period} period
             </div>
           )}
         </div>
