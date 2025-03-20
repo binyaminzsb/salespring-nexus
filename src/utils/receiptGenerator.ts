@@ -1,3 +1,4 @@
+
 import { formatCurrency } from './salesFormat';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -14,7 +15,7 @@ export const generateReceiptText = (sale: any) => {
   
   let receiptText = `
 =================================
-          BLANK POS SYSTEM
+          PULSE POS SYSTEM
 =================================
 Receipt #${sale.id.substring(0, 8)}
 ${formattedDate} at ${formattedTime}
@@ -83,7 +84,7 @@ export const generatePDF = (sale: any) => {
   
   // Add receipt header
   doc.setFontSize(20);
-  doc.text("Blank POS System", 105, 20, { align: "center" });
+  doc.text("PULSE POS System", 105, 20, { align: "center" });
   doc.setFontSize(12);
   doc.text(`Receipt #${sale.id.substring(0, 8)}`, 105, 30, { align: "center" });
   doc.text(`${formattedDate} at ${formattedTime}`, 105, 38, { align: "center" });

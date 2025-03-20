@@ -71,18 +71,25 @@ export const useAuthApi = () => {
   const signIn = async (email: string, password: string) => {
     try {
       setLoading(true);
+      console.log("Attempting to sign in user:", email);
       
-      const { error } = await supabase.auth.signInWithPassword({
+      const { error, data } = await supabase.auth.signInWithPassword({
         email,
         password
       });
       
-      if (error) throw error;
+      if (error) {
+        console.error("Sign in error:", error);
+        throw error;
+      }
       
-      toast.success("Signed in successfully!");
+      console.log("Sign in successful", data);
+      
+      // Don't show toast here, let the component handle it
       navigate("/dashboard");
+      return data;
     } catch (error: any) {
-      toast.error(error.message || "Failed to sign in");
+      console.error("Sign in error details:", error);
       throw error;
     } finally {
       setLoading(false);
@@ -90,18 +97,24 @@ export const useAuthApi = () => {
   };
 
   const signOut = async () => {
-    setLoading(true);
-    const { error } = await supabase.auth.signOut();
-    
-    if (error) {
-      toast.error(error.message);
+    try {
+      setLoading(true);
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        console.error("Sign out error:", error);
+        toast.error(error.message);
+        return;
+      }
+      
+      toast.success("Signed out successfully");
+      navigate("/");
+    } catch (error: any) {
+      console.error("Sign out error:", error);
+      toast.error(error.message || "Error signing out");
+    } finally {
       setLoading(false);
-      return;
     }
-    
-    toast.success("Signed out successfully");
-    navigate("/");
-    setLoading(false);
   };
 
   const updatePassword = async (currentPassword: string, newPassword: string) => {
