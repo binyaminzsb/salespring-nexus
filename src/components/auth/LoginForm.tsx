@@ -10,10 +10,9 @@ import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { toast } from "sonner";
 
 const formSchema = z.object({
-  email: z.string().min(1, { message: "Email is required" }).email("Invalid email format"),
+  email: z.string().min(1, { message: "Email is required" }),
   password: z.string().min(1, { message: "Password is required" }),
 });
 
@@ -36,19 +35,10 @@ const LoginForm: React.FC = () => {
     try {
       setIsLoading(true);
       setError(null);
-      
-      console.log("Attempting sign in with:", values.email);
       await signIn(values.email, values.password);
-      console.log("Sign in successful");
-      
-      // Show success toast
-      toast.success("Signed in successfully!");
     } catch (err: any) {
-      console.error("Sign in error:", err);
       setError(err.message || "Failed to sign in");
-      toast.error("Sign in failed. Please try again.");
-      
-      // Ensure loading state is reset
+    } finally {
       setIsLoading(false);
     }
   };
