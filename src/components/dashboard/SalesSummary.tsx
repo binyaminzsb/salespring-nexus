@@ -172,8 +172,8 @@ const SalesSummary: React.FC = () => {
               <BarChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="date" />
-                <YAxis tickFormatter={(value) => `£${value}`} />
-                <Tooltip formatter={(value) => [`£${value}`, "Sales"]} />
+                <YAxis tickFormatter={(value) => `$${value}`} />
+                <Tooltip formatter={(value) => [`$${value}`, "Sales"]} />
                 <Bar dataKey="total" fill="#3b82f6" />
               </BarChart>
             </ResponsiveContainer>
