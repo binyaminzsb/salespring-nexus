@@ -2,7 +2,7 @@
 import React from "react";
 import { CartItem as CartItemType } from "@/types/cart";
 import CartItemComponent from "./CartItem";
-import { formatCurrency } from "@/utils/salesUtils";
+import { formatCurrency } from "@/utils/salesFormat";
 
 interface CartItemListProps {
   items: CartItemType[];

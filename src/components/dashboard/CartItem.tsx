@@ -1,7 +1,8 @@
+
 import React from "react";
 import { Trash2, Plus, Minus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { formatCurrency } from "@/utils/salesUtils";
+import { formatCurrency } from "@/utils/salesFormat";
 import { CartItem as CartItemType } from "@/types/cart";
 
 interface CartItemProps {

@@ -1,7 +1,7 @@
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { formatCurrency } from "@/utils/salesUtils";
+import { formatCurrency } from "@/utils/salesFormat";
 import { useCart } from "@/contexts/CartContext";
 
 const NumberPad: React.FC = () => {
@@ -55,16 +55,16 @@ const NumberPad: React.FC = () => {
   const formattedDisplay = () => {
     try {
       if (displayValue === "" || displayValue === "0.00") {
-        return "$0.00";
+        return "£0.00";
       }
       
       if (displayValue.endsWith(".")) {
-        return `$${displayValue}`;
+        return `£${displayValue}`;
       }
       
       return formatCurrency(parseFloat(displayValue));
     } catch (error) {
-      return "$0.00";
+      return "£0.00";
     }
   };
 

@@ -7,6 +7,7 @@ import Cart from "@/components/dashboard/Cart";
 import CustomItemForm from "@/components/dashboard/CustomItemForm";
 import { useCart } from "@/contexts/CartContext";
 import { toast } from "sonner";
+import { formatCurrency } from "@/utils/salesFormat";
 
 const NewSale = () => {
   const { addItem } = useCart();
@@ -65,7 +66,7 @@ const NewSale = () => {
                         onClick={() => handleQuickItemClick(item.name, item.price)}
                       >
                         <div className="text-indigo-700">{item.name}</div>
-                        <div className="text-sm text-gray-500">${item.price.toFixed(2)}</div>
+                        <div className="text-sm text-gray-500">{formatCurrency(item.price)}</div>
                       </div>
                     ))}
                   </div>
