@@ -43,12 +43,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
-          <div className="space-y-2">
-            <div className="grid grid-cols-3 text-sm">
-              <div className="text-gray-500">User ID</div>
-              <div className="col-span-2 font-medium">{user.id}</div>
-            </div>
-          </div>
+          {/* Removed the duplicated User ID display from here */}
           
           <UserInfoSection user={user} />
           
