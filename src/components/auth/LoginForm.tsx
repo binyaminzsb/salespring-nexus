@@ -3,13 +3,15 @@ import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAdmin } from "@/contexts/AdminContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const formSchema = z.object({
   email: z.string().min(1, { message: "Email is required" }),
@@ -18,8 +20,16 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
+const adminFormSchema = z.object({
+  adminPassword: z.string().min(1, { message: "Admin password is required" }),
+});
+
+type AdminFormValues = z.infer<typeof adminFormSchema>;
+
 const LoginForm: React.FC = () => {
   const { signIn } = useAuth();
+  const { adminLogin } = useAdmin();
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -28,6 +38,13 @@ const LoginForm: React.FC = () => {
     defaultValues: {
       email: "",
       password: "",
+    },
+  });
+
+  const adminForm = useForm<AdminFormValues>({
+    resolver: zodResolver(adminFormSchema),
+    defaultValues: {
+      adminPassword: "",
     },
   });
 
@@ -43,63 +60,127 @@ const LoginForm: React.FC = () => {
     }
   };
 
+  const onAdminSubmit = async (values: AdminFormValues) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const success = adminLogin(values.adminPassword);
+      if (success) {
+        navigate("/admin/users");
+      } else {
+        setError("Invalid admin password");
+      }
+    } catch (err: any) {
+      setError(err.message || "Failed to sign in as admin");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        {error && (
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-        
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email</FormLabel>
-              <FormControl>
-                <Input placeholder="email@example.com" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Password</FormLabel>
-              <FormControl>
-                <Input type="password" placeholder="••••••" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Signing in...
-            </>
-          ) : (
-            "Sign In"
-          )}
-        </Button>
-        
-        <div className="text-center text-sm">
-          Don't have an account?{" "}
-          <Link to="/register" className="text-pos-blue hover:text-pos-blue-dark font-medium">
-            Sign up
-          </Link>
-        </div>
-      </form>
-    </Form>
+    <Tabs defaultValue="user">
+      <TabsList className="grid w-full grid-cols-2 mb-6">
+        <TabsTrigger value="user">User</TabsTrigger>
+        <TabsTrigger value="admin">Admin</TabsTrigger>
+      </TabsList>
+      
+      <TabsContent value="user">
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {error && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input placeholder="email@example.com" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Password</FormLabel>
+                  <FormControl>
+                    <Input type="password" placeholder="••••••" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Signing in...
+                </>
+              ) : (
+                "Sign In"
+              )}
+            </Button>
+            
+            <div className="text-center text-sm">
+              Don't have an account?{" "}
+              <Link to="/register" className="text-pos-blue hover:text-pos-blue-dark font-medium">
+                Sign up
+              </Link>
+            </div>
+          </form>
+        </Form>
+      </TabsContent>
+      
+      <TabsContent value="admin">
+        <Form {...adminForm}>
+          <form onSubmit={adminForm.handleSubmit(onAdminSubmit)} className="space-y-4">
+            {error && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            
+            <FormField
+              control={adminForm.control}
+              name="adminPassword"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Admin Password</FormLabel>
+                  <FormControl>
+                    <Input type="password" placeholder="Enter admin password" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Signing in...
+                </>
+              ) : (
+                "Admin Sign In"
+              )}
+            </Button>
+          </form>
+        </Form>
+      </TabsContent>
+    </Tabs>
   );
 };
 
