@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { LogOut, User, LayoutDashboard, ShoppingCart, BarChart2 } from "lucide-react";
+import Clock from "./Clock";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -35,11 +36,14 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50">
       <header className="bg-white border-b border-gray-200 py-4 shadow-sm">
         <div className="container mx-auto px-4 flex justify-between items-center">
-          <div 
-            className="text-3xl logo-text cursor-pointer" 
-            onClick={() => navigate("/dashboard")}
-          >
-            PULSE
+          <div className="flex items-center space-x-4">
+            <div 
+              className="text-3xl logo-text cursor-pointer" 
+              onClick={() => navigate("/dashboard")}
+            >
+              PULSE
+            </div>
+            <Clock />
           </div>
           <div className="flex items-center space-x-6">
             <nav className="hidden md:flex items-center space-x-4">
