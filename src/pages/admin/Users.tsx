@@ -21,6 +21,12 @@ interface User {
   created_at: string;
 }
 
+interface AuthUser {
+  id: string;
+  email?: string;
+  created_at?: string;
+}
+
 const Users = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -77,8 +83,8 @@ const Users = () => {
             
           console.log("Direct auth users query:", authUsersData, directAuthError);
           
-          if (authUsersData && authUsersData.length > 0) {
-            setUsers(authUsersData);
+          if (authUsersData && Array.isArray(authUsersData) && authUsersData.length > 0) {
+            setUsers(authUsersData as User[]);
             toast.success(`Found ${authUsersData.length} users via auth API`);
           } else {
             // Last resort - see if we can match any user IDs from the session
