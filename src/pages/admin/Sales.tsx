@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 interface UserSale {
   email: string;
@@ -27,12 +28,15 @@ const Sales = () => {
   useEffect(() => {
     const fetchSalesData = async () => {
       try {
+        console.log("Fetching sales data...");
         // Fetch sales data
         const { data: salesData, error: salesError } = await supabase
           .from('sales')
           .select('user_id, total');
           
         if (salesError) throw salesError;
+        
+        console.log("Sales data received:", salesData);
         
         // Fetch user emails
         const { data: profilesData, error: profilesError } = await supabase
@@ -41,30 +45,43 @@ const Sales = () => {
           
         if (profilesError) throw profilesError;
         
-        // Map user IDs to emails
-        const emailMap = new Map();
-        profilesData.forEach((profile: any) => {
-          emailMap.set(profile.id, profile.email);
-        });
+        console.log("Profiles data received:", profilesData);
         
-        // Group and sum sales by user
-        const salesByUser = salesData.reduce((acc: Record<string, number>, sale: any) => {
-          const userId = sale.user_id;
-          if (!acc[userId]) {
-            acc[userId] = 0;
-          }
-          acc[userId] += parseFloat(sale.total.toString());
-          return acc;
-        }, {});
-        
-        // Format the data for display
-        const formattedData = Object.entries(salesByUser).map(([userId, total]) => ({
-          userId,
-          email: emailMap.get(userId) || 'Unknown User',
-          totalSales: total
-        }));
-        
-        setUserSales(formattedData);
+        if (salesData && salesData.length > 0 && profilesData && profilesData.length > 0) {
+          // Map user IDs to emails
+          const emailMap = new Map();
+          profilesData.forEach((profile: any) => {
+            emailMap.set(profile.id, profile.email);
+          });
+          
+          // Group and sum sales by user
+          const salesByUser = salesData.reduce((acc: Record<string, number>, sale: any) => {
+            const userId = sale.user_id;
+            if (!acc[userId]) {
+              acc[userId] = 0;
+            }
+            acc[userId] += parseFloat(sale.total.toString());
+            return acc;
+          }, {});
+          
+          // Format the data for display
+          const formattedData = Object.entries(salesByUser).map(([userId, total]) => ({
+            userId,
+            email: emailMap.get(userId) || 'Unknown User',
+            totalSales: total
+          }));
+          
+          setUserSales(formattedData);
+        } else {
+          console.log("No sales data or profiles found in database, using demo data");
+          // If no data is found, use demo data
+          setUserSales([
+            { userId: "1", email: "demo@example.com", totalSales: 1250.75 },
+            { userId: "2", email: "user@example.com", totalSales: 876.50 }
+          ]);
+          
+          toast.info("Using demo data since no sales are in the database yet.");
+        }
       } catch (err: any) {
         console.error("Error fetching sales data:", err);
         setError(err.message || "Failed to fetch sales data");
