@@ -1,9 +1,9 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@/types/auth";
+import { SALES_KEY } from "@/utils/cartUtils";
 
 export const useAuthApi = () => {
   const [loading, setLoading] = useState(false);
@@ -104,6 +104,62 @@ export const useAuthApi = () => {
     setLoading(false);
   };
 
+  const deleteAccount = async () => {
+    try {
+      setLoading(true);
+      
+      // Get the current user
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        throw new Error("User not found");
+      }
+      
+      // Delete user-related data from Supabase
+      // 1. Delete user's profile data
+      const { error: profileDeleteError } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', user.id);
+        
+      if (profileDeleteError) {
+        console.error("Error deleting profile:", profileDeleteError);
+      }
+      
+      // 2. Delete user's sales data
+      const { error: salesDeleteError } = await supabase
+        .from('sales')
+        .delete()
+        .eq('user_id', user.id);
+        
+      if (salesDeleteError) {
+        console.error("Error deleting sales:", salesDeleteError);
+      }
+      
+      // 3. Delete the user's account from Supabase
+      const { error: userDeleteError } = await supabase.auth.admin.deleteUser(user.id);
+      
+      if (userDeleteError) {
+        // If admin deletion fails (which it might in development), try regular sign out
+        await supabase.auth.signOut();
+        throw new Error("Cannot delete user account directly. Please contact support.");
+      }
+      
+      // 4. Clear local storage data
+      localStorage.removeItem(SALES_KEY);
+      
+      toast.success("Account deleted successfully");
+      navigate("/");
+      return true;
+    } catch (error: any) {
+      console.error("Account deletion error:", error);
+      toast.error(error.message || "Failed to delete account");
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const updatePassword = async (currentPassword: string, newPassword: string) => {
     try {
       setLoading(true);
@@ -182,6 +238,7 @@ export const useAuthApi = () => {
     signUp,
     signIn,
     signOut,
+    deleteAccount,
     updatePassword,
     updateProfile
   };

@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext } from "react";
 import { AuthContextType } from "@/types/auth";
 import { useAuthSession } from "@/hooks/useAuthSession";
@@ -9,6 +10,7 @@ export const AuthContext = createContext<AuthContextType>({
   signUp: async () => {},
   signIn: async () => {},
   signOut: () => {},
+  deleteAccount: async () => false,
   updatePassword: async () => false,
   updateProfile: async () => false
 });
@@ -22,6 +24,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     signUp, 
     signIn, 
     signOut, 
+    deleteAccount,
     updatePassword,
     updateProfile
   } = useAuthApi();
@@ -34,6 +37,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         signUp,
         signIn,
         signOut,
+        deleteAccount,
         updatePassword,
         updateProfile
       }}
