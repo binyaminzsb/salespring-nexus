@@ -82,17 +82,36 @@ export const generatePDF = (sale: any) => {
   });
   const formattedTime = date.toLocaleTimeString("en-US");
   
-  // Add receipt header
-  doc.setFontSize(20);
-  doc.text("PULSE POS System", 105, 20, { align: "center" });
+  // Add color and styling
+  const primaryColor = [99, 102, 241]; // Indigo
+  const secondaryColor = [236, 72, 153]; // Pink
+  const accentColor = [79, 70, 229]; // Deep blue
+  
+  // Add header with gradient-like effect
+  doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+  doc.rect(0, 0, doc.internal.pageSize.width, 40, 'F');
+  doc.setFillColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
+  doc.rect(0, 35, doc.internal.pageSize.width, 10, 'F');
+  
+  // Add title
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(24);
+  doc.setFont('helvetica', 'bold');
+  doc.text("PULSE POS SYSTEM", 105, 20, { align: "center" });
+  
+  // Add receipt info
+  doc.setTextColor(0, 0, 0);
   doc.setFontSize(12);
-  doc.text(`Receipt #${sale.id.substring(0, 8)}`, 105, 30, { align: "center" });
-  doc.text(`${formattedDate} at ${formattedTime}`, 105, 38, { align: "center" });
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Receipt #${sale.id.substring(0, 8)}`, 105, 55, { align: "center" });
+  doc.text(`${formattedDate} at ${formattedTime}`, 105, 65, { align: "center" });
   
-  // Add transaction details
-  doc.setFontSize(10);
+  // Add line separator
+  doc.setDrawColor(accentColor[0], accentColor[1], accentColor[2]);
+  doc.setLineWidth(0.5);
+  doc.line(20, 70, 190, 70);
   
-  // Create table for items if available
+  // Create table for items
   if (sale.items && sale.items.length > 0) {
     const tableColumn = ["Item", "Quantity", "Price", "Total"];
     const tableRows = sale.items.map((item: any) => [
@@ -105,32 +124,67 @@ export const generatePDF = (sale: any) => {
     autoTable(doc, {
       head: [tableColumn],
       body: tableRows,
-      startY: 45,
+      startY: 80,
       theme: 'grid',
+      headStyles: { 
+        fillColor: [99, 102, 241],
+        textColor: [255, 255, 255],
+        fontStyle: 'bold'
+      },
+      alternateRowStyles: {
+        fillColor: [240, 240, 250]
+      },
+      styles: {
+        lineColor: [200, 200, 200]
+      }
     });
   } else {
-    doc.text("Items: Not available", 20, 45);
+    doc.text("No items in this transaction", 105, 90, { align: "center" });
   }
   
   // Add payment details
-  let yPos = sale.items && sale.items.length > 0 ? (doc as any).lastAutoTable.finalY + 10 : 55;
+  let yPos = sale.items && sale.items.length > 0 ? (doc as any).lastAutoTable.finalY + 15 : 100;
+  
+  // Add box for payment info
+  doc.setFillColor(245, 245, 255);
+  doc.roundedRect(50, yPos - 7, 110, 40, 3, 3, 'F');
+  doc.setDrawColor(accentColor[0], accentColor[1], accentColor[2]);
+  doc.roundedRect(50, yPos - 7, 110, 40, 3, 3, 'S');
   
   if (sale.customAmount > 0) {
-    doc.text(`Custom Amount: ${formatCurrency(sale.customAmount)}`, 20, yPos);
-    yPos += 8;
+    doc.text(`Custom Amount: ${formatCurrency(sale.customAmount)}`, 105, yPos, { align: "center" });
+    yPos += 10;
   }
   
-  doc.text(`Payment Method: ${sale.paymentMethod}`, 20, yPos);
-  yPos += 8;
+  doc.text(`Payment Method: ${sale.paymentMethod}`, 105, yPos, { align: "center" });
+  yPos += 10;
   
-  doc.setFontSize(12);
+  if (sale.cardNumber) {
+    doc.text(`Card: ${sale.cardNumber}`, 105, yPos, { align: "center" });
+    yPos += 10;
+  }
+  
+  // Total amount
+  doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
-  doc.text(`Total: ${formatCurrency(sale.totalAmount)}`, 20, yPos);
+  doc.setTextColor(accentColor[0], accentColor[1], accentColor[2]);
+  doc.text(`Total: ${formatCurrency(sale.totalAmount)}`, 105, yPos, { align: "center" });
   
   // Add footer
+  const footerY = doc.internal.pageSize.height - 20;
+  doc.setFillColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
+  doc.rect(0, footerY - 5, doc.internal.pageSize.width, 10, 'F');
+  
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
-  doc.text("Thank you for your business!", 105, yPos + 20, { align: "center" });
+  doc.setTextColor(255, 255, 255);
+  doc.text("Thank you for your business!", 105, footerY, { align: "center" });
+  
+  // Add decorative elements
+  doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+  doc.setLineWidth(2);
+  doc.circle(30, 20, 5, 'S');
+  doc.circle(180, 20, 5, 'S');
   
   // Save the PDF
   doc.save(`receipt-${sale.id.substring(0, 8)}.pdf`);
