@@ -54,6 +54,16 @@ const Profile = () => {
     );
   }
 
+  // Create a wrapper for deleteAccount to match the expected type
+  const handleDeleteAccount = async (): Promise<boolean> => {
+    try {
+      return await deleteAccount();
+    } catch (error) {
+      console.error("Failed to delete account:", error);
+      return false;
+    }
+  };
+
   return (
     <AppLayout>
       <div className="container mx-auto py-10 px-4 max-w-3xl">
@@ -62,7 +72,7 @@ const Profile = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="md:col-span-1">
             <ProfileAvatar user={user} />
-            <AccountActions onSignOut={signOut} onDeleteAccount={deleteAccount} />
+            <AccountActions onSignOut={signOut} onDeleteAccount={handleDeleteAccount} />
           </div>
 
           <div className="md:col-span-2">

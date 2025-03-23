@@ -15,10 +15,11 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { SALES_KEY } from "@/utils/cartUtils";
+import { toast } from "sonner";
 
 interface AccountActionsProps {
   onSignOut: () => void;
-  onDeleteAccount: () => Promise<void>;
+  onDeleteAccount: () => Promise<boolean>;
 }
 
 export const AccountActions: React.FC<AccountActionsProps> = ({ 
@@ -34,9 +35,14 @@ export const AccountActions: React.FC<AccountActionsProps> = ({
       // Clear the sales data from localStorage
       localStorage.removeItem(SALES_KEY);
       // Show success message
-      window.location.reload();
+      toast.success("Sales data has been reset successfully");
+      // Reload the page to reflect changes
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
     } catch (error) {
       console.error("Failed to reset sales:", error);
+      toast.error("Failed to reset sales data");
     } finally {
       setIsResetting(false);
     }
@@ -45,10 +51,15 @@ export const AccountActions: React.FC<AccountActionsProps> = ({
   const handleDeleteAccount = async () => {
     try {
       setIsDeleting(true);
-      await onDeleteAccount();
+      const success = await onDeleteAccount();
+      if (!success) {
+        setIsDeleting(false);
+        toast.error("Failed to delete account");
+      }
     } catch (error) {
       console.error("Failed to delete account:", error);
       setIsDeleting(false);
+      toast.error("Failed to delete account");
     }
   };
 
