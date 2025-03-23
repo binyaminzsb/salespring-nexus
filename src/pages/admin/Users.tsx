@@ -27,6 +27,11 @@ interface AuthUser {
   created_at?: string;
 }
 
+interface ProfileData {
+  id: string;
+  email: string;
+}
+
 const Users = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -67,7 +72,7 @@ const Users = () => {
           console.log("Found user profiles:", profilesData);
           
           // Map the profiles data to user format with created_at field
-          const usersWithDates = profilesData.map((profile: any) => ({
+          const usersWithDates = (profilesData as ProfileData[]).map((profile) => ({
             id: profile.id,
             email: profile.email,
             created_at: new Date().toISOString() // Default date since profiles might not have created_at
@@ -84,8 +89,9 @@ const Users = () => {
           console.log("Direct auth users query:", authUsersData, directAuthError);
           
           if (authUsersData && Array.isArray(authUsersData) && authUsersData.length > 0) {
-            setUsers(authUsersData as User[]);
-            toast.success(`Found ${authUsersData.length} users via auth API`);
+            const typedAuthUsers = authUsersData as any[];
+            setUsers(typedAuthUsers as User[]);
+            toast.success(`Found ${typedAuthUsers.length} users via auth API`);
           } else {
             // Last resort - see if we can match any user IDs from the session
             console.log("No users found in profiles table or auth API, using session user");
