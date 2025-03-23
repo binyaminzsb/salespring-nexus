@@ -28,14 +28,25 @@ const Users = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const { data, error } = await supabase.auth.admin.listUsers();
+        // Instead of using auth.admin API, fetch from the profiles table
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('id, email');
         
         if (error) {
           throw error;
         }
         
-        if (data && data.users) {
-          setUsers(data.users as User[]);
+        if (data) {
+          // Get user registration dates from the auth.users is not possible with anon key
+          // So we'll use the demo dates for now or default to current date
+          const usersWithDates = data.map((profile: any) => ({
+            id: profile.id,
+            email: profile.email,
+            created_at: new Date().toISOString() // Default to current date
+          }));
+          
+          setUsers(usersWithDates);
         }
       } catch (err: any) {
         console.error("Error fetching users:", err);
@@ -90,14 +101,22 @@ const Users = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {users.map((user) => (
-                  <TableRow key={user.id}>
-                    <TableCell className="font-medium">{user.email}</TableCell>
-                    <TableCell>
-                      {format(new Date(user.created_at), "dd MMM yyyy, h:mm a")}
+                {users.length > 0 ? (
+                  users.map((user) => (
+                    <TableRow key={user.id}>
+                      <TableCell className="font-medium">{user.email}</TableCell>
+                      <TableCell>
+                        {format(new Date(user.created_at), "dd MMM yyyy, h:mm a")}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={2} className="text-center py-4">
+                      No users found
                     </TableCell>
                   </TableRow>
-                ))}
+                )}
               </TableBody>
             </Table>
           </CardContent>

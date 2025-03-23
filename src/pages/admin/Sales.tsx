@@ -53,7 +53,7 @@ const Sales = () => {
           if (!acc[userId]) {
             acc[userId] = 0;
           }
-          acc[userId] += parseFloat(sale.total);
+          acc[userId] += parseFloat(sale.total.toString());
           return acc;
         }, {});
         
