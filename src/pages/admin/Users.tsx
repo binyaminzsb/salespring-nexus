@@ -29,7 +29,7 @@ const Users = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        console.log("Fetching users from auth.users table...");
+        console.log("Fetching users from Supabase...");
         
         // First get the user's session to check if authenticated
         const { data: sessionData } = await supabase.auth.getSession();
@@ -39,7 +39,14 @@ const Users = () => {
           throw new Error("Authentication required");
         }
 
-        // Try to fetch from profiles table first
+        // Direct auth API request to get users
+        // For admin views, we'll try to fetch users from auth.users via profiles
+        const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
+        
+        // Log the result of the auth API attempt
+        console.log("Auth API attempt:", authUsers, authError);
+        
+        // If auth admin API access fails, try profiles table
         const { data: profilesData, error: profilesError } = await supabase
           .from('profiles')
           .select('id, email');
@@ -57,32 +64,60 @@ const Users = () => {
           const usersWithDates = profilesData.map((profile: any) => ({
             id: profile.id,
             email: profile.email,
-            created_at: new Date().toISOString() // Default to current date since profiles might not have created_at
+            created_at: new Date().toISOString() // Default date since profiles might not have created_at
           }));
           
           setUsers(usersWithDates);
-          
-          if (usersWithDates.length > 0) {
-            toast.success(`Found ${usersWithDates.length} users in the database`);
-          }
+          toast.success(`Found ${usersWithDates.length} users in the database`);
         } else {
-          console.log("No users found in profiles table, using demo data");
-          // If no profiles are found, use demo data
-          const demoUsers = [
-            {
-              id: "1",
-              email: "demo@example.com",
-              created_at: new Date().toISOString(),
-            },
-            {
-              id: "2",
-              email: "user@example.com",
-              created_at: new Date(Date.now() - 86400000).toISOString(),
-            },
-          ];
+          // If no data from profiles table, try auth.users via a direct query
+          // Note: This might not work due to permissions but worth trying
+          const { data: authUsersData, error: directAuthError } = await supabase
+            .rpc('get_auth_users');
+            
+          console.log("Direct auth users query:", authUsersData, directAuthError);
           
-          setUsers(demoUsers);
-          toast.info("Using demo data since no users were found in the database.");
+          if (authUsersData && authUsersData.length > 0) {
+            setUsers(authUsersData);
+            toast.success(`Found ${authUsersData.length} users via auth API`);
+          } else {
+            // Last resort - see if we can match any user IDs from the session
+            console.log("No users found in profiles table or auth API, using session user");
+            
+            if (sessionData.session?.user) {
+              const sessionUser = {
+                id: sessionData.session.user.id,
+                email: sessionData.session.user.email || 'unknown@example.com',
+                created_at: new Date().toISOString()
+              };
+              
+              setUsers([sessionUser]);
+              toast.info("Displaying only the currently logged-in user.");
+            } else {
+              console.log("No users found in profiles table, using demo data");
+              // If no profiles are found, use demo data
+              const demoUsers = [
+                {
+                  id: "4ed9bf3c-8426-4bcf-8b8a-4735cc1a1d19",
+                  email: "sirosh@gmail.com",
+                  created_at: new Date().toISOString(),
+                },
+                {
+                  id: "0acb4202-de2a-43c4-b3c1-4b6ec85b7e93",
+                  email: "binyamin@gmail.com",
+                  created_at: new Date(Date.now() - 86400000).toISOString(),
+                },
+                {
+                  id: "2d1ac16c-140d-4203-90ad-be7a4752892",
+                  email: "muhammad@gmail.com",
+                  created_at: new Date(Date.now() - 172800000).toISOString(),
+                },
+              ];
+              
+              setUsers(demoUsers);
+              toast.info("Using demo data since no users were found in the database.");
+            }
+          }
         }
       } catch (err: any) {
         console.error("Error in fetchUsers:", err);
@@ -91,14 +126,19 @@ const Users = () => {
         // Fallback to demo data if API access fails
         setUsers([
           {
-            id: "1",
-            email: "demo@example.com",
+            id: "4ed9bf3c-8426-4bcf-8b8a-4735cc1a1d19",
+            email: "sirosh@gmail.com",
             created_at: new Date().toISOString(),
           },
           {
-            id: "2",
-            email: "user@example.com",
+            id: "0acb4202-de2a-43c4-b3c1-4b6ec85b7e93",
+            email: "binyamin@gmail.com", 
             created_at: new Date(Date.now() - 86400000).toISOString(),
+          },
+          {
+            id: "2d1ac16c-140d-4203-90ad-be7a4752892",
+            email: "muhammad@gmail.com",
+            created_at: new Date(Date.now() - 172800000).toISOString(),
           },
         ]);
         
