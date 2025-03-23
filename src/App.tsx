@@ -6,7 +6,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { CartProvider } from "@/contexts/CartContext";
-import { AdminProvider } from "@/contexts/AdminContext";
 
 // Pages
 import Index from "./pages/Index";
@@ -17,11 +16,6 @@ import PaymentSuccess from "./pages/PaymentSuccess";
 import Sales from "./pages/Sales";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
-
-// Admin Pages
-import AdminUsers from "./pages/admin/Users";
-import AdminSales from "./pages/admin/Sales";
-import ProtectedAdminRoute from "./components/admin/ProtectedAdminRoute";
 
 const queryClient = new QueryClient();
 
@@ -90,24 +84,6 @@ const AppRoutes = () => {
         } 
       />
       
-      {/* Admin routes */}
-      <Route 
-        path="/admin/users" 
-        element={
-          <ProtectedAdminRoute>
-            <AdminUsers />
-          </ProtectedAdminRoute>
-        } 
-      />
-      <Route 
-        path="/admin/sales" 
-        element={
-          <ProtectedAdminRoute>
-            <AdminSales />
-          </ProtectedAdminRoute>
-        } 
-      />
-      
       {/* Catch-all route */}
       <Route path="*" element={<NotFound />} />
     </Routes>
@@ -121,13 +97,11 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <AdminProvider>
-          <AuthProvider>
-            <CartProvider>
-              <AppRoutes />
-            </CartProvider>
-          </AuthProvider>
-        </AdminProvider>
+        <AuthProvider>
+          <CartProvider>
+            <AppRoutes />
+          </CartProvider>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
