@@ -13,7 +13,6 @@ import {
 import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
-import { toast } from "sonner";
 
 interface User {
   id: string;
@@ -29,7 +28,7 @@ const Users = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        console.log("Fetching users from profiles table...");
+        // Instead of using auth.admin API, fetch from the profiles table
         const { data, error } = await supabase
           .from('profiles')
           .select('id, email');
@@ -38,10 +37,9 @@ const Users = () => {
           throw error;
         }
         
-        console.log("Profiles data received:", data);
-        
-        if (data && data.length > 0) {
-          // Map the profiles data to user format
+        if (data) {
+          // Get user registration dates from the auth.users is not possible with anon key
+          // So we'll use the demo dates for now or default to current date
           const usersWithDates = data.map((profile: any) => ({
             id: profile.id,
             email: profile.email,
@@ -49,23 +47,6 @@ const Users = () => {
           }));
           
           setUsers(usersWithDates);
-        } else {
-          console.log("No profiles found in database, using demo data");
-          // If no profiles are found, use demo data
-          setUsers([
-            {
-              id: "1",
-              email: "demo@example.com",
-              created_at: new Date().toISOString(),
-            },
-            {
-              id: "2",
-              email: "user@example.com",
-              created_at: new Date(Date.now() - 86400000).toISOString(),
-            },
-          ]);
-          
-          toast.info("Using demo data since no users are in the database yet.");
         }
       } catch (err: any) {
         console.error("Error fetching users:", err);
