@@ -29,30 +29,46 @@ const Users = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        console.log("Fetching users from profiles table...");
-        const { data, error } = await supabase
+        console.log("Fetching users from auth.users table...");
+        
+        // First get the user's session to check if authenticated
+        const { data: sessionData } = await supabase.auth.getSession();
+        
+        if (!sessionData.session) {
+          console.log("No authenticated session found");
+          throw new Error("Authentication required");
+        }
+
+        // Try to fetch from profiles table first
+        const { data: profilesData, error: profilesError } = await supabase
           .from('profiles')
           .select('id, email');
         
-        if (error) {
-          throw error;
+        console.log("Profiles query result:", profilesData, profilesError);
+
+        if (profilesError) {
+          console.error("Error fetching profiles:", profilesError);
         }
         
-        console.log("Profiles data received:", data);
-        
-        if (data && data.length > 0) {
-          // Map the profiles data to user format
-          const usersWithDates = data.map((profile: any) => ({
+        if (profilesData && profilesData.length > 0) {
+          console.log("Found user profiles:", profilesData);
+          
+          // Map the profiles data to user format with created_at field
+          const usersWithDates = profilesData.map((profile: any) => ({
             id: profile.id,
             email: profile.email,
-            created_at: new Date().toISOString() // Default to current date
+            created_at: new Date().toISOString() // Default to current date since profiles might not have created_at
           }));
           
           setUsers(usersWithDates);
+          
+          if (usersWithDates.length > 0) {
+            toast.success(`Found ${usersWithDates.length} users in the database`);
+          }
         } else {
-          console.log("No profiles found in database, using demo data");
+          console.log("No users found in profiles table, using demo data");
           // If no profiles are found, use demo data
-          setUsers([
+          const demoUsers = [
             {
               id: "1",
               email: "demo@example.com",
@@ -63,12 +79,13 @@ const Users = () => {
               email: "user@example.com",
               created_at: new Date(Date.now() - 86400000).toISOString(),
             },
-          ]);
+          ];
           
-          toast.info("Using demo data since no users are in the database yet.");
+          setUsers(demoUsers);
+          toast.info("Using demo data since no users were found in the database.");
         }
       } catch (err: any) {
-        console.error("Error fetching users:", err);
+        console.error("Error in fetchUsers:", err);
         setError(err.message || "Failed to fetch users");
         
         // Fallback to demo data if API access fails
@@ -84,6 +101,8 @@ const Users = () => {
             created_at: new Date(Date.now() - 86400000).toISOString(),
           },
         ]);
+        
+        toast.error(`Error fetching users: ${err.message || "Unknown error"}`);
       } finally {
         setLoading(false);
       }

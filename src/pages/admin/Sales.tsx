@@ -28,13 +28,25 @@ const Sales = () => {
   useEffect(() => {
     const fetchSalesData = async () => {
       try {
-        console.log("Fetching sales data...");
-        // Fetch sales data
+        console.log("Fetching sales data and user profiles...");
+        
+        // First get the user's session to check if authenticated
+        const { data: sessionData } = await supabase.auth.getSession();
+        
+        if (!sessionData.session) {
+          console.log("No authenticated session found");
+          throw new Error("Authentication required");
+        }
+        
+        // Fetch sales data with join to profiles
         const { data: salesData, error: salesError } = await supabase
           .from('sales')
           .select('user_id, total');
           
-        if (salesError) throw salesError;
+        if (salesError) {
+          console.error("Error fetching sales:", salesError);
+          throw salesError;
+        }
         
         console.log("Sales data received:", salesData);
         
@@ -43,7 +55,10 @@ const Sales = () => {
           .from('profiles')
           .select('id, email');
           
-        if (profilesError) throw profilesError;
+        if (profilesError) {
+          console.error("Error fetching profiles:", profilesError);
+          throw profilesError;
+        }
         
         console.log("Profiles data received:", profilesData);
         
@@ -55,14 +70,14 @@ const Sales = () => {
           });
           
           // Group and sum sales by user
-          const salesByUser = salesData.reduce((acc: Record<string, number>, sale: any) => {
+          const salesByUser: Record<string, number> = {};
+          salesData.forEach((sale: any) => {
             const userId = sale.user_id;
-            if (!acc[userId]) {
-              acc[userId] = 0;
+            if (!salesByUser[userId]) {
+              salesByUser[userId] = 0;
             }
-            acc[userId] += parseFloat(sale.total.toString());
-            return acc;
-          }, {});
+            salesByUser[userId] += parseFloat(sale.total.toString());
+          });
           
           // Format the data for display
           const formattedData = Object.entries(salesByUser).map(([userId, total]) => ({
@@ -72,15 +87,20 @@ const Sales = () => {
           }));
           
           setUserSales(formattedData);
+          
+          if (formattedData.length > 0) {
+            toast.success(`Found sales data for ${formattedData.length} users`);
+          }
         } else {
           console.log("No sales data or profiles found in database, using demo data");
           // If no data is found, use demo data
-          setUserSales([
+          const demoSales = [
             { userId: "1", email: "demo@example.com", totalSales: 1250.75 },
             { userId: "2", email: "user@example.com", totalSales: 876.50 }
-          ]);
+          ];
           
-          toast.info("Using demo data since no sales are in the database yet.");
+          setUserSales(demoSales);
+          toast.info("Using demo sales data since no sales were found in the database.");
         }
       } catch (err: any) {
         console.error("Error fetching sales data:", err);
@@ -91,6 +111,8 @@ const Sales = () => {
           { userId: "1", email: "demo@example.com", totalSales: 1250.75 },
           { userId: "2", email: "user@example.com", totalSales: 876.50 }
         ]);
+        
+        toast.error(`Error fetching sales data: ${err.message || "Unknown error"}`);
       } finally {
         setLoading(false);
       }
