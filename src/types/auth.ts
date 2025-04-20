@@ -12,4 +12,6 @@ export interface AuthContextType {
   signOut: () => void;
   updatePassword: (currentPassword: string, newPassword: string) => Promise<boolean>;
   updateProfile: (data: Partial<User>) => Promise<boolean>;
+  deleteAccount: () => Promise<boolean>;
+  resetSalesData: () => Promise<boolean>;
 }
