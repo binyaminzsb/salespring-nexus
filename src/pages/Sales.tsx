@@ -16,8 +16,14 @@ const Sales = () => {
     period, 
     setPeriod, 
     isLoading, 
-    totalAmount 
+    totalAmount,
+    fetchAllSales
   } = useSalesData(user);
+
+  // Ensure data is fetched when the component mounts
+  React.useEffect(() => {
+    fetchAllSales();
+  }, []);
 
   return (
     <AppLayout>

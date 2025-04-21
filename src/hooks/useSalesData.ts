@@ -87,13 +87,17 @@ export const useSalesData = (user: User | null) => {
   };
 
   useEffect(() => {
-    // Fetch both local and Supabase sales data
-    fetchAllSales();
+    // Fetch both local and Supabase sales data when user changes
+    if (user) {
+      fetchAllSales();
+    }
   }, [user]);
   
   // Filter sales when period changes
   useEffect(() => {
-    processChartData(sales);
+    if (sales.length > 0) {
+      processChartData(sales);
+    }
   }, [period, sales]);
 
   const filteredSales = filterSalesByPeriod(sales, period);
@@ -109,6 +113,7 @@ export const useSalesData = (user: User | null) => {
     period,
     setPeriod,
     isLoading,
-    totalAmount
+    totalAmount,
+    fetchAllSales // Expose the function to fetch sales data
   };
 };
