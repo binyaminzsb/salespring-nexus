@@ -2,6 +2,7 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { formatCurrency } from "@/utils/salesFormat";
 
 interface SalesChartProps {
   chartData: any[];
@@ -25,8 +26,8 @@ export const SalesChart: React.FC<SalesChartProps> = ({ chartData, isLoading }) 
               <BarChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="date" />
-                <YAxis tickFormatter={(value) => `$${value}`} />
-                <Tooltip formatter={(value) => [`$${value}`, "Sales"]} />
+                <YAxis tickFormatter={(value) => formatCurrency(value)} />
+                <Tooltip formatter={(value) => [formatCurrency(value as number), "Sales"]} />
                 <Bar dataKey="amount" fill="#3b82f6" />
               </BarChart>
             </ResponsiveContainer>
@@ -40,3 +41,4 @@ export const SalesChart: React.FC<SalesChartProps> = ({ chartData, isLoading }) 
     </Card>
   );
 };
+
