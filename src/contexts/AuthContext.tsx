@@ -1,8 +1,7 @@
-
 import React, { createContext, useContext } from "react";
 import { AuthContextType } from "@/types/auth";
 import { useAuthSession } from "@/hooks/useAuthSession";
-import { useAuthApi } from "@/hooks/useAuthApi";
+import { useAuthApi } from "@/hooks/auth/useAuthApi";
 
 export const AuthContext = createContext<AuthContextType>({
   user: null,
