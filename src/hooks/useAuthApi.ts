@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -13,6 +14,12 @@ export const useAuthApi = () => {
       setLoading(true);
       console.log("Attempting to sign up user:", email);
 
+      // Add loading timeout for better UX
+      const timeoutId = setTimeout(() => {
+        toast.error("Sign up is taking longer than expected. Please try again.");
+        setLoading(false);
+      }, 10000); // 10 second timeout
+
       // Register with Supabase with email confirmation disabled
       const { error, data } = await supabase.auth.signUp({
         email,
@@ -26,6 +33,8 @@ export const useAuthApi = () => {
           }
         }
       });
+
+      clearTimeout(timeoutId); // Clear timeout if request completes
 
       if (error) throw error;
       
@@ -70,11 +79,20 @@ export const useAuthApi = () => {
   const signIn = async (email: string, password: string) => {
     try {
       setLoading(true);
+      console.log("Attempting to sign in user:", email);
+      
+      // Add loading timeout for better UX
+      const timeoutId = setTimeout(() => {
+        toast.error("Sign in is taking longer than expected. Please try again.");
+        setLoading(false);
+      }, 10000); // 10 second timeout
       
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
+      
+      clearTimeout(timeoutId); // Clear timeout if request completes
       
       if (error) throw error;
       
