@@ -1,4 +1,3 @@
-
 import { formatCurrency } from './salesFormat';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -22,14 +21,18 @@ ${formattedDate} at ${formattedTime}
 ---------------------------------
 `;
 
-  sale.items.forEach((item: any) => {
-    receiptText += `
+  if (sale.items && sale.items.length > 0) {
+    sale.items.forEach((item: any) => {
+      receiptText += `
 ${item.name}
 ${item.quantity} x ${formatCurrency(item.price)} = ${formatCurrency(
-      item.quantity * item.price
-    )}
+        item.quantity * item.price
+      )}
 `;
-  });
+    });
+  } else {
+    receiptText += "\nNo items added to this transaction\n";
+  }
 
   if (sale.customAmount > 0) {
     receiptText += `
@@ -111,7 +114,9 @@ export const generatePDF = (sale: any) => {
   doc.setLineWidth(0.5);
   doc.line(20, 70, 190, 70);
   
-  // Create table for items
+  // Create table for items if they exist
+  let yPos = 80;
+  
   if (sale.items && sale.items.length > 0) {
     const tableColumn = ["Item", "Quantity", "Price", "Total"];
     const tableRows = sale.items.map((item: any) => [
@@ -124,7 +129,7 @@ export const generatePDF = (sale: any) => {
     autoTable(doc, {
       head: [tableColumn],
       body: tableRows,
-      startY: 80,
+      startY: yPos,
       theme: 'grid',
       headStyles: { 
         fillColor: [99, 102, 241],
@@ -138,12 +143,12 @@ export const generatePDF = (sale: any) => {
         lineColor: [200, 200, 200]
       }
     });
+    yPos = (doc as any).lastAutoTable.finalY + 15;
   } else {
-    doc.text("No items in this transaction", 105, 90, { align: "center" });
+    doc.setFont('helvetica', 'italic');
+    doc.text("No items added to this transaction", 105, yPos, { align: "center" });
+    yPos += 20;
   }
-  
-  // Add payment details
-  let yPos = sale.items && sale.items.length > 0 ? (doc as any).lastAutoTable.finalY + 15 : 100;
   
   // Add box for payment info
   doc.setFillColor(245, 245, 255);
@@ -151,6 +156,7 @@ export const generatePDF = (sale: any) => {
   doc.setDrawColor(accentColor[0], accentColor[1], accentColor[2]);
   doc.roundedRect(50, yPos - 7, 110, 40, 3, 3, 'S');
   
+  doc.setFont('helvetica', 'normal');
   if (sale.customAmount > 0) {
     doc.text(`Custom Amount: ${formatCurrency(sale.customAmount)}`, 105, yPos, { align: "center" });
     yPos += 10;
