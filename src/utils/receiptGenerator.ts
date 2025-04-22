@@ -1,3 +1,4 @@
+
 import { formatCurrency } from './salesFormat';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -21,7 +22,8 @@ ${formattedDate} at ${formattedTime}
 ---------------------------------
 `;
 
-  if (sale.items && sale.items.length > 0) {
+  // Check if items exist and have length
+  if (sale.items && Array.isArray(sale.items) && sale.items.length > 0) {
     sale.items.forEach((item: any) => {
       receiptText += `
 ${item.name}
@@ -30,6 +32,9 @@ ${item.quantity} x ${formatCurrency(item.price)} = ${formatCurrency(
       )}
 `;
     });
+  } else if (sale.customAmount > 0) {
+    // If no items but custom amount exists
+    receiptText += "\nCustom amount charged\n";
   } else {
     receiptText += "\nNo items added to this transaction\n";
   }
@@ -117,7 +122,7 @@ export const generatePDF = (sale: any) => {
   // Create table for items if they exist
   let yPos = 80;
   
-  if (sale.items && sale.items.length > 0) {
+  if (sale.items && Array.isArray(sale.items) && sale.items.length > 0) {
     const tableColumn = ["Item", "Quantity", "Price", "Total"];
     const tableRows = sale.items.map((item: any) => [
       item.name,
@@ -144,6 +149,11 @@ export const generatePDF = (sale: any) => {
       }
     });
     yPos = (doc as any).lastAutoTable.finalY + 15;
+  } else if (sale.customAmount > 0) {
+    // If no items but custom amount exists
+    doc.setFont('helvetica', 'italic');
+    doc.text("Custom amount charged", 105, yPos, { align: "center" });
+    yPos += 20;
   } else {
     doc.setFont('helvetica', 'italic');
     doc.text("No items added to this transaction", 105, yPos, { align: "center" });
