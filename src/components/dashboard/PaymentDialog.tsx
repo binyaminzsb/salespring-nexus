@@ -14,6 +14,7 @@ import {
 import { formatCurrency } from "@/utils/salesUtils";
 import { useCart } from "@/contexts/CartContext";
 import { toast } from "sonner";
+import { Progress } from "@/components/ui/progress";
 
 interface PaymentDialogProps {
   open: boolean;
@@ -29,20 +30,58 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
   const { saveSale } = useCart();
   const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [progress, setProgress] = useState(0);
+
+  // Reset progress when dialog opens
+  React.useEffect(() => {
+    if (open) {
+      setProgress(0);
+      setIsProcessing(false);
+    }
+  }, [open]);
+
+  // Simulate progress updates during payment processing
+  React.useEffect(() => {
+    let interval: number | null = null;
+    
+    if (isProcessing && progress < 100) {
+      interval = window.setInterval(() => {
+        setProgress(prev => {
+          // Slow down progress as it gets higher to simulate real processing
+          const increment = prev < 50 ? 10 : prev < 80 ? 5 : 2;
+          return Math.min(prev + increment, 97); // Never reach 100 until actually done
+        });
+      }, 250);
+    }
+    
+    return () => {
+      if (interval !== null) {
+        clearInterval(interval);
+      }
+    };
+  }, [isProcessing, progress]);
 
   const handleProcessPayment = async () => {
     try {
       setIsProcessing(true);
+      console.log("Payment processing started");
       
-      // Simulate payment processing delay (3 seconds)
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      // Simulate payment processing with a shorter delay (1.5 seconds)
+      await new Promise(resolve => setTimeout(resolve, 1500));
       
       // Try to process the sale with card payment method
       try {
+        console.log("Saving sale to database");
         const saleId = await saveSale("card");
         if (!saleId) {
           throw new Error("Failed to get transaction ID");
         }
+        
+        // Set progress to 100 when complete
+        setProgress(100);
+        
+        // Wait a moment to show the completed progress
+        await new Promise(resolve => setTimeout(resolve, 300));
         
         // Close dialog
         onOpenChange(false);
@@ -87,13 +126,19 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
         <div className="py-4">
           <div className="flex justify-center items-center h-24">
             <div className="flex gap-4">
-              <CreditCard size={64} className="text-blue-600" />
+              <CreditCard size={64} className={`text-blue-600 ${isProcessing ? 'animate-pulse' : ''}`} />
             </div>
           </div>
           
           <div className="mt-6 text-center text-xl font-bold">
             {formatCurrency(totalAmount)}
           </div>
+
+          {isProcessing && (
+            <div className="mt-6">
+              <Progress value={progress} className="h-2 bg-blue-100" />
+            </div>
+          )}
         </div>
         
         <DialogFooter>
