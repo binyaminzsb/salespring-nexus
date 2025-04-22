@@ -23,7 +23,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
         </div>
         <Card className="border-0 shadow-lg overflow-hidden">
           <div className="h-2 bg-pos-gradient"></div>
-          <CardHeader>
+          <CardHeader className="pb-2">
             <CardTitle className="text-2xl">{title}</CardTitle>
             {description && <CardDescription>{description}</CardDescription>}
           </CardHeader>

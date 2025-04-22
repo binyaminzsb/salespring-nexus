@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -24,6 +24,7 @@ const LoginForm: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(true);
+  const [isInitializing, setIsInitializing] = useState(true);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -32,6 +33,15 @@ const LoginForm: React.FC = () => {
       password: "",
     },
   });
+
+  // Add initialization effect to reduce perceived loading time
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsInitializing(false);
+    }, 300);
+    
+    return () => clearTimeout(timer);
+  }, []);
 
   const onSubmit = async (values: FormValues) => {
     try {
@@ -47,7 +57,7 @@ const LoginForm: React.FC = () => {
     }
   };
 
-  if (authLoading) {
+  if (isInitializing || authLoading) {
     return (
       <div className="space-y-4">
         <Skeleton className="h-12 w-full" />

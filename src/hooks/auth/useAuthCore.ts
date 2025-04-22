@@ -14,10 +14,11 @@ export const useAuthCore = () => {
       setLoading(true);
       console.log("Attempting to sign up user:", email);
 
+      // Reduced timeout from 10s to 5s
       const timeoutId = setTimeout(() => {
         toast.error("Sign up is taking longer than expected. Please try again.");
         setLoading(false);
-      }, 10000);
+      }, 5000);
 
       const { error, data } = await supabase.auth.signUp({
         email,
@@ -74,10 +75,11 @@ export const useAuthCore = () => {
       setLoading(true);
       console.log("Attempting to sign in user:", email);
       
+      // Reduced timeout from 10s to 5s
       const timeoutId = setTimeout(() => {
         toast.error("Sign in is taking longer than expected. Please try again.");
         setLoading(false);
-      }, 10000);
+      }, 5000);
       
       const { error } = await supabase.auth.signInWithPassword({
         email,

@@ -26,10 +26,10 @@ export const useAuthSession = () => {
   };
 
   useEffect(() => {
-    // Set a timeout to prevent infinite loading state
+    // Reduced max loading time from 5s to 3s
     const loadingTimeout = setTimeout(() => {
       setLoading(false);
-    }, 5000); // 5 seconds max loading time
+    }, 3000);
 
     // Handle auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -39,18 +39,19 @@ export const useAuthSession = () => {
         if (session) {
           console.log("Auth state changed, fetching profile for user:", session.user.id);
           
-          // Fetch user profile from profiles table
-          const profile = await fetchUserProfile(session.user.id);
-          
-          // Set user with information from auth
+          // Set user immediately with basic info to speed up UI rendering
           setUser({
             id: session.user.id,
             email: session.user.email || ''
           });
+          
+          // Then fetch profile asynchronously
+          fetchUserProfile(session.user.id);
+          setLoading(false);
         } else {
           setUser(null);
+          setLoading(false);
         }
-        setLoading(false);
       }
     );
 
@@ -62,13 +63,14 @@ export const useAuthSession = () => {
         if (session) {
           console.log("Initial session check for user:", session.user.id);
           
-          // Fetch user profile from profiles table
-          const profile = await fetchUserProfile(session.user.id);
-          
+          // Set user immediately with basic info
           setUser({
             id: session.user.id,
             email: session.user.email || ''
           });
+          
+          // Then fetch profile asynchronously  
+          fetchUserProfile(session.user.id);
         }
       } catch (error) {
         console.error("Error initializing auth:", error);
